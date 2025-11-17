@@ -14,6 +14,13 @@ export class ApiError extends Error {
   }
 }
 
+export class NetworkError extends Error {
+  constructor(message: string = 'Network connection failed. Please check your internet connection.') {
+    super(message);
+    this.name = 'NetworkError';
+  }
+}
+
 interface FetchOptions extends RequestInit {
   params?: Record<string, string>;
 }
@@ -73,6 +80,10 @@ export async function fetcher<T>(
     }
 
     // Network or parsing errors
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new NetworkError();
+    }
+
     throw new ApiError(
       error instanceof Error ? error.message : 'Network error',
       0
