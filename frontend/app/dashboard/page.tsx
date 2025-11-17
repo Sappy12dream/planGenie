@@ -7,9 +7,9 @@ import { plansApi } from '@/lib/api/plans';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Sparkles, LogOut } from 'lucide-react';
 import { PlanCard } from '@/components/dashboard/PlanCard';
+import { PlanCardSkeleton } from '@/components/dashboard/PlanCardSkeleton';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -61,7 +61,13 @@ export default function DashboardPage() {
                 My Plans
               </h1>
               <p className="text-slate-600">
-                {plans.length} {plans.length === 1 ? 'plan' : 'plans'} total
+                {isLoading ? (
+                  <span className="inline-block h-5 w-20 animate-pulse rounded bg-slate-200" />
+                ) : (
+                  <>
+                    {plans.length} {plans.length === 1 ? 'plan' : 'plans'} total
+                  </>
+                )}
               </p>
             </div>
             <Button onClick={() => router.push('/new-plan')} className="gap-2">
@@ -75,19 +81,31 @@ export default function DashboardPage() {
             <div className="rounded-lg border bg-white p-4">
               <p className="mb-1 text-sm text-slate-600">Active</p>
               <p className="text-2xl font-bold text-slate-900">
-                {activePlans.length}
+                {isLoading ? (
+                  <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200" />
+                ) : (
+                  activePlans.length
+                )}
               </p>
             </div>
             <div className="rounded-lg border bg-white p-4">
               <p className="mb-1 text-sm text-slate-600">Completed</p>
               <p className="text-2xl font-bold text-green-600">
-                {completedPlans.length}
+                {isLoading ? (
+                  <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200" />
+                ) : (
+                  completedPlans.length
+                )}
               </p>
             </div>
             <div className="rounded-lg border bg-white p-4">
               <p className="mb-1 text-sm text-slate-600">Archived</p>
               <p className="text-2xl font-bold text-slate-600">
-                {archivedPlans.length}
+                {isLoading ? (
+                  <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200" />
+                ) : (
+                  archivedPlans.length
+                )}
               </p>
             </div>
           </div>
@@ -98,6 +116,7 @@ export default function DashboardPage() {
               variant={statusFilter === undefined ? 'default' : 'outline'}
               onClick={() => setStatusFilter(undefined)}
               size="sm"
+              disabled={isLoading}
             >
               All
             </Button>
@@ -105,6 +124,7 @@ export default function DashboardPage() {
               variant={statusFilter === 'active' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('active')}
               size="sm"
+              disabled={isLoading}
             >
               Active
             </Button>
@@ -112,6 +132,7 @@ export default function DashboardPage() {
               variant={statusFilter === 'completed' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('completed')}
               size="sm"
+              disabled={isLoading}
             >
               Completed
             </Button>
@@ -119,6 +140,7 @@ export default function DashboardPage() {
               variant={statusFilter === 'archived' ? 'default' : 'outline'}
               onClick={() => setStatusFilter('archived')}
               size="sm"
+              disabled={isLoading}
             >
               Archived
             </Button>
@@ -127,8 +149,8 @@ export default function DashboardPage() {
           {/* Plans Grid */}
           {isLoading ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-64 w-full" />
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <PlanCardSkeleton key={i} />
               ))}
             </div>
           ) : plans.length === 0 ? (
