@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Task } from '@/types/plan';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { tasksApi } from '@/lib/api/tasks';
+import { tasksApi, TaskUpdateRequest } from '@/lib/api/tasks';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Plan } from '@/types/plan';
 import { toast } from 'sonner';
+import { TaskFileUpload } from './TaskFileUpload';
 
 interface TaskItemProps {
   task: Task;
@@ -31,6 +32,13 @@ interface TaskItemProps {
 export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
   const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(task.title);
+  const [editedDescription, setEditedDescription] = useState(task.description || '');
+  
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
 
   const statusColors = {
     pending: 'bg-slate-100 text-slate-700',
@@ -44,11 +52,26 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
     completed: 'Done',
   };
 
-  // Update task status mutation with optimistic update
-  const updateStatusMutation = useMutation({
-    mutationFn: (newStatus: Task['status']) =>
-      tasksApi.updateTask(task.id, { status: newStatus }),
-    onMutate: async (newStatus) => {
+  // Focus input when editing starts
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [isEditingTitle]);
+
+  useEffect(() => {
+    if (isEditingDescription && descriptionInputRef.current) {
+      descriptionInputRef.current.focus();
+      descriptionInputRef.current.select();
+    }
+  }, [isEditingDescription]);
+
+  // Update task mutation
+  const updateTaskMutation = useMutation({
+    mutationFn: (updates: TaskUpdateRequest) =>
+      tasksApi.updateTask(task.id, updates),
+    onMutate: async (updates) => {
       await queryClient.cancelQueries({ queryKey: ['plan', planId] });
 
       const previousPlan = queryClient.getQueryData<Plan>(['plan', planId]);
@@ -59,23 +82,26 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
         return {
           ...old,
           tasks: old.tasks.map((t) =>
-            t.id === task.id ? { ...t, status: newStatus } : t
+            t.id === task.id ? { ...t, ...updates } : t
           ),
         };
       });
 
       return { previousPlan };
     },
-    onError: (err, newStatus, context) => {
+    onError: (err, updates, context) => {
       if (context?.previousPlan) {
         queryClient.setQueryData(['plan', planId], context.previousPlan);
       }
       toast.error('Failed to update task', {
         description: 'Please try again',
       });
+      // Revert local state
+      setEditedTitle(task.title);
+      setEditedDescription(task.description || '');
     },
-    onSuccess: (data, newStatus) => {
-      if (newStatus === 'completed') {
+    onSuccess: (data, updates) => {
+      if (updates.status === 'completed') {
         toast.success('Task completed!');
       } else {
         toast.success('Task updated');
@@ -86,7 +112,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
     },
   });
 
-  // Delete task mutation with optimistic update
+  // Delete task mutation
   const deleteMutation = useMutation({
     mutationFn: () => tasksApi.deleteTask(task.id),
     onMutate: async () => {
@@ -123,11 +149,57 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
 
   const handleCheckboxChange = (checked: boolean) => {
     const newStatus = checked ? 'completed' : 'pending';
-    updateStatusMutation.mutate(newStatus);
+    updateTaskMutation.mutate({ status: newStatus });
   };
 
   const handleDelete = () => {
     deleteMutation.mutate();
+  };
+
+  const handleTitleSave = () => {
+    const trimmedTitle = editedTitle.trim();
+    if (!trimmedTitle) {
+      toast.error('Task title cannot be empty');
+      setEditedTitle(task.title);
+      setIsEditingTitle(false);
+      return;
+    }
+
+    if (trimmedTitle !== task.title) {
+      updateTaskMutation.mutate({ title: trimmedTitle });
+    }
+    setIsEditingTitle(false);
+  };
+
+  const handleDescriptionSave = () => {
+    const trimmedDescription = editedDescription.trim();
+    if (trimmedDescription !== (task.description || '')) {
+      // Convert empty string to undefined for API
+      updateTaskMutation.mutate({ 
+        description: trimmedDescription || undefined 
+      });
+    }
+    setIsEditingDescription(false);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleTitleSave();
+    } else if (e.key === 'Escape') {
+      setEditedTitle(task.title);
+      setIsEditingTitle(false);
+    }
+  };
+
+  const handleDescriptionKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && e.ctrlKey) {
+      e.preventDefault();
+      handleDescriptionSave();
+    } else if (e.key === 'Escape') {
+      setEditedDescription(task.description || '');
+      setIsEditingDescription(false);
+    }
   };
 
   return (
@@ -141,7 +213,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
         <GripVertical className="h-5 w-5" />
       </div>
 
-      {/* Checkbox - Prevent drag when clicking */}
+      {/* Checkbox */}
       <div
         className="mt-1 shrink-0"
         onMouseDown={(e) => e.stopPropagation()}
@@ -150,33 +222,74 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
         <Checkbox
           checked={task.status === 'completed'}
           onCheckedChange={handleCheckboxChange}
-          disabled={updateStatusMutation.isPending}
+          disabled={updateTaskMutation.isPending}
         />
       </div>
 
       {/* Content */}
       <div className="min-w-0 flex-1">
         <div className="mb-2 flex items-start justify-between gap-4">
-          <h3
-            className={`font-medium text-slate-900 transition-all duration-200 ${
-              task.status === 'completed' ? 'text-slate-500 line-through' : ''
-            }`}
-          >
-            {task.title}
-          </h3>
+          {/* Editable Title */}
+          {isEditingTitle ? (
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={editedTitle}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              onBlur={handleTitleSave}
+              onKeyDown={handleTitleKeyDown}
+              onMouseDown={(e) => e.stopPropagation()}
+              className="flex-1 rounded border border-blue-400 px-2 py-1 font-medium text-slate-900 outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={updateTaskMutation.isPending}
+            />
+          ) : (
+            <h3
+              onClick={() => !isDragging && setIsEditingTitle(true)}
+              className={`flex-1 cursor-text font-medium text-slate-900 transition-all duration-200 hover:text-blue-600 ${
+                task.status === 'completed' ? 'text-slate-500 line-through' : ''
+              }`}
+            >
+              {task.title}
+            </h3>
+          )}
+          
           <Badge variant="secondary" className={statusColors[task.status]}>
             {statusLabels[task.status]}
           </Badge>
         </div>
 
-        {task.description && (
-          <p
-            className={`text-sm text-slate-600 transition-all duration-200 ${
-              task.status === 'completed' ? 'text-slate-400' : ''
-            }`}
-          >
-            {task.description}
-          </p>
+        {/* Editable Description */}
+        {isEditingDescription ? (
+          <textarea
+            ref={descriptionInputRef}
+            value={editedDescription}
+            onChange={(e) => setEditedDescription(e.target.value)}
+            onBlur={handleDescriptionSave}
+            onKeyDown={handleDescriptionKeyDown}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="w-full rounded border border-blue-400 px-2 py-1 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-blue-500"
+            rows={3}
+            disabled={updateTaskMutation.isPending}
+            placeholder="Add a description... (Ctrl+Enter to save, Esc to cancel)"
+          />
+        ) : (
+          task.description || isEditingTitle ? (
+            <p
+              onClick={() => !isDragging && setIsEditingDescription(true)}
+              className={`cursor-text text-sm text-slate-600 transition-all duration-200 hover:text-blue-600 ${
+                task.status === 'completed' ? 'text-slate-400' : ''
+              } ${!task.description ? 'italic text-slate-400' : ''}`}
+            >
+              {task.description || 'Click to add description...'}
+            </p>
+          ) : (
+            <button
+              onClick={() => setIsEditingDescription(true)}
+              className="text-sm text-slate-400 hover:text-blue-600"
+            >
+              + Add description
+            </button>
+          )
         )}
 
         {task.due_date && (
@@ -184,6 +297,11 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
             Due: {new Date(task.due_date).toLocaleDateString()}
           </p>
         )}
+
+        {/* File Upload Section */}
+        <div className="mt-3 border-t pt-3">
+          <TaskFileUpload taskId={task.id} />
+        </div>
       </div>
 
       {/* Delete Button */}
