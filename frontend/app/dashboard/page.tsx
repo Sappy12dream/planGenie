@@ -7,7 +7,15 @@ import { plansApi } from '@/lib/api/plans';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Plus, Sparkles, LogOut } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Plus, Sparkles, LogOut, User, Settings } from 'lucide-react';
 import { PlanCard } from '@/components/dashboard/PlanCard';
 import { PlanCardSkeleton } from '@/components/dashboard/PlanCardSkeleton';
 
@@ -27,6 +35,10 @@ export default function DashboardPage() {
   const completedPlans = plans.filter((p) => p.status === 'completed');
   const archivedPlans = plans.filter((p) => p.status === 'archived');
 
+  const initials = user?.email
+    ? user.email.split('@')[0].substring(0, 2).toUpperCase()
+    : 'U';
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-linear-to-b from-slate-50 to-slate-100">
@@ -39,16 +51,42 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-4">
-              <span className="text-sm text-slate-600">{user?.email}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => signOut()}
-                className="gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
+              {/* User Menu Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="h-10 w-10 rounded-full p-0"
+                  >
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-slate-900 text-white">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-2">
+                    <p className="text-sm font-medium">{user?.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push('/profile')}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => router.push('/profile/settings')}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
