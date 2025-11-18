@@ -7,7 +7,7 @@ import { tasksApi, TaskUpdateRequest } from '@/lib/api/tasks';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, GripVertical } from 'lucide-react';
+import { Trash2, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +22,8 @@ import {
 import { Plan } from '@/types/plan';
 import { toast } from 'sonner';
 import { TaskFileUpload } from './TaskFileUpload';
+import { SubtasksList } from './SubtasksList';
+import { TaskDescription } from './TaskDescription';
 
 interface TaskItemProps {
   task: Task;
@@ -34,9 +36,12 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
-  const [editedDescription, setEditedDescription] = useState(task.description || '');
-  
+  const [editedDescription, setEditedDescription] = useState(
+    task.description || ''
+  );
+
   const titleInputRef = useRef<HTMLInputElement>(null);
   const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -96,7 +101,6 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
       toast.error('Failed to update task', {
         description: 'Please try again',
       });
-      // Revert local state
       setEditedTitle(task.title);
       setEditedDescription(task.description || '');
     },
@@ -134,9 +138,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
       if (context?.previousPlan) {
         queryClient.setQueryData(['plan', planId], context.previousPlan);
       }
-      toast.error('Failed to delete task', {
-        description: 'Please try again',
-      });
+      toast.error('Failed to delete task');
     },
     onSuccess: () => {
       setIsDeleting(false);
@@ -174,9 +176,8 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
   const handleDescriptionSave = () => {
     const trimmedDescription = editedDescription.trim();
     if (trimmedDescription !== (task.description || '')) {
-      // Convert empty string to undefined for API
-      updateTaskMutation.mutate({ 
-        description: trimmedDescription || undefined 
+      updateTaskMutation.mutate({
+        description: trimmedDescription || undefined,
       });
     }
     setIsEditingDescription(false);
@@ -229,37 +230,76 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
       {/* Content */}
       <div className="min-w-0 flex-1">
         <div className="mb-2 flex items-start justify-between gap-4">
-          {/* Editable Title */}
-          {isEditingTitle ? (
-            <input
-              ref={titleInputRef}
-              type="text"
-              value={editedTitle}
-              onChange={(e) => setEditedTitle(e.target.value)}
-              onBlur={handleTitleSave}
-              onKeyDown={handleTitleKeyDown}
-              onMouseDown={(e) => e.stopPropagation()}
-              className="flex-1 rounded border border-blue-400 px-2 py-1 font-medium text-slate-900 outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={updateTaskMutation.isPending}
-            />
-          ) : (
-            <h3
-              onClick={() => !isDragging && setIsEditingTitle(true)}
-              className={`flex-1 cursor-text font-medium text-slate-900 transition-all duration-200 hover:text-blue-600 ${
-                task.status === 'completed' ? 'text-slate-500 line-through' : ''
-              }`}
-            >
-              {task.title}
-            </h3>
-          )}
-          
+          <div className="flex flex-1 items-start gap-2">
+            {/* Expand/Collapse Button */}
+            {task.description && !isEditingTitle && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="mt-0.5 shrink-0 text-slate-400 hover:text-slate-600"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+            )}
+
+            {/* Editable Title */}
+            {isEditingTitle ? (
+              <input
+                ref={titleInputRef}
+                type="text"
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                onBlur={handleTitleSave}
+                onKeyDown={handleTitleKeyDown}
+                onMouseDown={(e) => e.stopPropagation()}
+                className="flex-1 rounded border border-blue-400 px-2 py-1 font-medium text-slate-900 outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={updateTaskMutation.isPending}
+              />
+            ) : (
+              <h3
+                onClick={() => {
+                  if (!isDragging) {
+                    if (task.description) {
+                      setIsExpanded(!isExpanded);
+                    } else {
+                      setIsEditingTitle(true);
+                    }
+                  }
+                }}
+                className={`flex-1 cursor-pointer font-medium text-slate-900 transition-all duration-200 hover:text-blue-600 ${
+                  task.status === 'completed'
+                    ? 'text-slate-500 line-through'
+                    : ''
+                }`}
+              >
+                {task.title}
+              </h3>
+            )}
+          </div>
+
           <Badge variant="secondary" className={statusColors[task.status]}>
             {statusLabels[task.status]}
           </Badge>
         </div>
 
+        {/* Description - Collapsible */}
+        {task.description && isExpanded && !isEditingDescription && (
+          <div
+            onClick={() => !isDragging && setIsEditingDescription(true)}
+            className="mb-3 cursor-pointer rounded-lg bg-slate-50 p-3 hover:bg-slate-100"
+          >
+            <TaskDescription
+              description={task.description}
+              isCompleted={task.status === 'completed'}
+            />
+          </div>
+        )}
+
         {/* Editable Description */}
-        {isEditingDescription ? (
+        {isEditingDescription && (
           <textarea
             ref={descriptionInputRef}
             value={editedDescription}
@@ -267,41 +307,43 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
             onBlur={handleDescriptionSave}
             onKeyDown={handleDescriptionKeyDown}
             onMouseDown={(e) => e.stopPropagation()}
-            className="w-full rounded border border-blue-400 px-2 py-1 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-blue-500"
-            rows={3}
+            className="mb-3 w-full rounded border border-blue-400 px-2 py-1 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-blue-500"
+            rows={6}
             disabled={updateTaskMutation.isPending}
             placeholder="Add a description... (Ctrl+Enter to save, Esc to cancel)"
           />
-        ) : (
-          task.description || isEditingTitle ? (
-            <p
-              onClick={() => !isDragging && setIsEditingDescription(true)}
-              className={`cursor-text text-sm text-slate-600 transition-all duration-200 hover:text-blue-600 ${
-                task.status === 'completed' ? 'text-slate-400' : ''
-              } ${!task.description ? 'italic text-slate-400' : ''}`}
-            >
-              {task.description || 'Click to add description...'}
-            </p>
-          ) : (
-            <button
-              onClick={() => setIsEditingDescription(true)}
-              className="text-sm text-slate-400 hover:text-blue-600"
-            >
-              + Add description
-            </button>
-          )
+        )}
+
+        {!task.description && !isEditingTitle && !isEditingDescription && (
+          <button
+            onClick={() => setIsEditingDescription(true)}
+            className="mb-2 text-sm text-slate-400 hover:text-blue-600"
+          >
+            + Add description
+          </button>
         )}
 
         {task.due_date && (
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mb-2 text-xs text-slate-500">
             Due: {new Date(task.due_date).toLocaleDateString()}
           </p>
         )}
 
-        {/* File Upload Section */}
-        <div className="mt-3 border-t pt-3">
-          <TaskFileUpload taskId={task.id} />
-        </div>
+        {/* Subtasks Section - Only show when expanded */}
+        {isExpanded && (
+          <SubtasksList
+            taskId={task.id}
+            taskTitle={task.title}
+            taskDescription={task.description}
+          />
+        )}
+
+        {/* File Upload Section - Only show when expanded */}
+        {isExpanded && (
+          <div className="mt-3 border-t pt-3">
+            <TaskFileUpload taskId={task.id} />
+          </div>
+        )}
       </div>
 
       {/* Delete Button */}
