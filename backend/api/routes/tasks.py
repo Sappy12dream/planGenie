@@ -152,7 +152,7 @@ async def update_task(
             detail=f"Failed to update task: {str(e)}"
         )
 
-@router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{task_id}", status_code=status.HTTP_200_OK)
 async def delete_task(
     task_id: str,
     supabase: Client = Depends(get_supabase_client),
@@ -164,7 +164,7 @@ async def delete_task(
         
         result = supabase.table("tasks").delete().eq("id", task_id).execute()
         
-        return None
+        return {"message": "Task deleted successfully", "id": task_id}
         
     except HTTPException:
         raise

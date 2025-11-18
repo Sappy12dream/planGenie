@@ -260,7 +260,7 @@ async def get_plan(
         )
 
 
-@router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{plan_id}", status_code=status.HTTP_200_OK)
 async def delete_plan(
     plan_id: str,
     supabase: Client = Depends(get_supabase_client),
@@ -288,7 +288,7 @@ async def delete_plan(
         # Delete plan (cascade will delete tasks, resources, messages)
         supabase.table("plans").delete().eq("id", plan_id).execute()
 
-        return None
+        return {"message": "Plan deleted successfully", "id": plan_id}
 
     except HTTPException:
         raise
