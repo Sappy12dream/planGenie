@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 
-from api.routes import plans, tasks, chat, uploads
+from api.routes import plans, tasks, chat, uploads, subtasks
 
 # Load environment variables
 load_dotenv()
@@ -32,6 +32,7 @@ app.include_router(plans.router)
 app.include_router(tasks.router)
 app.include_router(chat.router)
 app.include_router(uploads.router)
+app.include_router(subtasks.router)
 
 @app.get("/")
 async def root():

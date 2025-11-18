@@ -6,34 +6,39 @@ from typing import Dict, List, Any, Optional
 settings = get_settings()
 client = OpenAI(api_key=settings.openai_api_key)
 
+
 def get_chat_response(
     user_message: str,
     plan: Dict[str, Any],
     tasks: List[Dict[str, Any]],
-    chat_history: List[Dict[str, Any]]
+    chat_history: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
     """
     Get intelligent AI response with actionable suggestions
     """
-    
+
     # Calculate plan statistics
     total_tasks = len(tasks)
-    completed_tasks = len([t for t in tasks if t['status'] == 'completed'])
-    pending_tasks = len([t for t in tasks if t['status'] == 'pending'])
+    completed_tasks = len([t for t in tasks if t["status"] == "completed"])
+    pending_tasks = len([t for t in tasks if t["status"] == "pending"])
     progress_percent = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
-    
+
     # Build detailed task context
-    tasks_text = "\n".join([
-        f"{i+1}. [{task['status'].upper()}] {task['title']}\n   Description: {task.get('description', 'No description')[:150]}..."
-        for i, task in enumerate(tasks)
-    ])
-    
+    tasks_text = "\n".join(
+        [
+            f"{i+1}. [{task['status'].upper()}] {task['title']}\n   Description: {task.get('description', 'No description')[:150]}..."
+            for i, task in enumerate(tasks)
+        ]
+    )
+
     # Build chat history
-    history_text = "\n".join([
-        f"{msg['role'].title()}: {msg['content']}"
-        for msg in chat_history[-6:]  # Last 6 messages for context
-    ])
-    
+    history_text = "\n".join(
+        [
+            f"{msg['role'].title()}: {msg['content']}"
+            for msg in chat_history[-6:]  # Last 6 messages for context
+        ]
+    )
+
     system_prompt = f"""You are PlanGenie's AI Assistant - an expert planning copilot that helps users execute their plans successfully.
 
 CURRENT PLAN OVERVIEW:
@@ -98,40 +103,39 @@ Remember: Your goal is to make execution EASY. The user should feel supported an
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",  # Using GPT-4 for better reasoning
+            model="gpt-4o-mini",  # Using GPT-4 for better reasoning
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
+                {"role": "user", "content": user_message},
             ],
             temperature=0.7,
-            max_tokens=800  # Increased for detailed responses
+            max_tokens=800,  # Increased for detailed responses
         )
-        
+
         ai_content = response.choices[0].message.content.strip()
-        
+
         # Analyze if AI is suggesting actions
         suggested_actions = extract_suggested_actions(ai_content, user_message)
-        
-        return {
-            "content": ai_content,
-            "suggested_actions": suggested_actions
-        }
-        
+
+        return {"content": ai_content, "suggested_actions": suggested_actions}
+
     except Exception as e:
         print(f"AI chat error: {e}")
         return {
             "content": "I'm having trouble connecting right now. Please try again in a moment.",
-            "suggested_actions": None
+            "suggested_actions": None,
         }
 
 
-def extract_suggested_actions(ai_response: str, user_message: str) -> Optional[List[Dict[str, str]]]:
+def extract_suggested_actions(
+    ai_response: str, user_message: str
+) -> Optional[List[Dict[str, str]]]:
     """
     Extract actionable suggestions from AI response
     Returns list of suggested actions user can take
     """
     suggestions = []
-    
+
     # Check for common action patterns in AI response
     action_keywords = [
         "want me to",
@@ -141,19 +145,21 @@ def extract_suggested_actions(ai_response: str, user_message: str) -> Optional[L
         "let me know if",
         "do you want",
     ]
-    
+
     response_lower = ai_response.lower()
-    
+
     # If AI is offering to do something, extract it
     for keyword in action_keywords:
         if keyword in response_lower:
             # Found a suggestion - could parse it more intelligently
             # For now, flag that there are suggestions
-            suggestions.append({
-                "type": "ai_suggestion",
-                "description": "AI has suggestions for you",
-                "action": "review_response"
-            })
+            suggestions.append(
+                {
+                    "type": "ai_suggestion",
+                    "description": "AI has suggestions for you",
+                    "action": "review_response",
+                }
+            )
             break
-    
+
     return suggestions if suggestions else None
