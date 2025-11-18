@@ -15,10 +15,13 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# Configure CORS
+# Configure CORS - Allow both local and production frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3004"],  # Frontend URL
+    allow_origins=[
+        "http://localhost:3004",           # Local development
+        "https://plan-genie-pi.vercel.app" # Production frontend
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
