@@ -1,7 +1,12 @@
 from openai import OpenAI
 from config import get_settings
 import json
-from typing import Dict, List
+from typing import Dict
+
+# Import utilities
+from utils.plan_config import SYSTEM_PROMPT, TASK_CATEGORIES
+from utils.json_helpers import clean_json_response, validate_plan_structure
+from utils.prompt_builder import determine_plan_type, build_plan_prompt
 
 settings = get_settings()
 client = OpenAI(api_key=settings.openai_api_key)
@@ -9,230 +14,126 @@ client = OpenAI(api_key=settings.openai_api_key)
 
 def generate_plan_with_ai(title: str, description: str, timeline: str = None) -> Dict:
     """
-    Generate a comprehensive, ultra-detailed plan using OpenAI GPT-4
-
+    Generate a comprehensive, well-organized plan using OpenAI GPT-4.
+    
     Args:
         title: Plan title
         description: Plan description
         timeline: Optional timeline (e.g., "2 weeks", "1 month")
-
+    
     Returns:
-        Dictionary with detailed tasks and resources
+        Dictionary with categorized tasks and relevant resources
+        Format: {"tasks": [...], "resources": [...]}
     """
-
-    # Build the prompt
-    timeline_text = f" within {timeline}" if timeline else ""
-
-    prompt = f"""You are PlanGenie, an expert AI planning assistant that creates ULTRA-DETAILED, actionable plans with specific recommendations and multiple options.
-
-Title: {title}
-Description: {description}
-Timeline: {timeline_text if timeline else "No specific timeline provided"}
-
-Your mission is to create a COMPREHENSIVE plan that someone can follow WITHOUT doing any additional research. You must:
-
-1. **Be EXTREMELY SPECIFIC** - Include exact details, not vague suggestions
-   - For travel: Suggest specific hotels with price ranges, exact routes with timings, meal recommendations
-   - For learning: Recommend specific courses/tutorials with URLs, time estimates per module
-   - For projects: List exact tools/software versions, setup commands, folder structures
-   - For fitness: Provide specific exercises with reps/sets, meal plans with calories
-   - For events: Venue suggestions with capacity, vendor recommendations with contact info
-
-2. **Provide MULTIPLE OPTIONS** in task descriptions (when applicable)
-   - **Option A (Premium/Recommended)**: Higher quality option with specifics and why it's best
-   - **Option B (Mid-Range/Balanced)**: Good balance of quality and cost with details
-   - **Option C (Budget/Basic)**: Most affordable or free option with specifics
-   - Include pros/cons for each option when relevant
-
-3. **Include PRACTICAL DETAILS**
-   - Exact costs with currency (e.g., "₹15,000" or "$50-100")
-   - Time estimates (e.g., "2-3 hours", "Day 1: 9 AM - 12 PM")
-   - Specific brands, services, platforms, or vendors
-   - Prerequisites or requirements clearly stated
-   - Tools/equipment/materials needed with where to get them
-   - Potential obstacles and how to overcome them
-   - Pro tips from someone experienced in this area
-
-4. **Break down into 10-15 DETAILED tasks**
-   - Each task description should be 5-8 sentences minimum
-   - Include WHO should do it, WHAT exactly to do, WHEN to do it, WHERE to do it, HOW MUCH it costs
-   - Mention specific brands, services, websites, or platforms
-   - Add insider tips or common mistakes to avoid
-   - For complex tasks, break down into numbered sub-steps
-
-5. **Add 8-12 HIGH-QUALITY, RELEVANT resources**
-   - Official documentation or booking sites
-   - Specific tutorial videos or online courses (with URLs)
-   - Comparison/review sites for decision-making
-   - Tools, apps, or software needed
-   - Community forums or support groups
-   - Booking platforms or marketplaces
-
-EXAMPLE OF EXCELLENT TASK (Travel Planning):
-Title: "Book accommodation in Udaipur for 13 people (3 nights, Nov 15-18)"
-Description: "You need 3-4 rooms for 13 people for 3 nights in Udaipur.
-
-**Option A (Luxury Experience - ₹180,000 total)**: The Oberoi Udaivillas - This 5-star property offers lake-facing rooms with private balconies and complimentary breakfast. Book 4 Premier Rooms at ₹15,000/night each (₹60,000 per night x 3 nights = ₹180,000 total). Each room accommodates 3-4 people comfortably. Book directly via their website (oberoisudaivillas.com) or Booking.com for best rates. Includes private boat access to City Palace, infinity pool, and spa. Best for: Special occasions, honeymoons in the group.
-
-**Option B (Mid-Range Comfort - ₹48,000 total)**: Hotel Lakend - Well-rated 3-star hotel (4.2★ on TripAdvisor, 1,200+ reviews) in city center, walking distance to Lake Pichola. Book 4 Deluxe Rooms at ₹4,000/night each (₹16,000 per night x 3 nights = ₹48,000 total). Clean AC rooms with attached bathrooms, complimentary breakfast, rooftop restaurant. Request adjacent rooms for the group. Book via Booking.com (free cancellation up to 3 days). Best for: Most groups - great value.
-
-**Option C (Budget Friendly - ₹30,000 total)**: Zostel Udaipur - Highly-rated hostel with private rooms perfect for groups. Book 4 Private Rooms at ₹2,500/night each (₹10,000 per night x 3 nights = ₹30,000 total). Each room has 3-4 beds, AC, clean shared bathrooms. Includes rooftop cafe with lake views, common area for group gatherings, friendly staff. Book directly on zostel.com for best prices. Best for: Backpackers, young groups, budget-conscious travelers.
-
-**Pro Tips**: (1) Book at least 2-3 months in advance for better rates and availability, (2) Request adjacent or nearby rooms for group convenience, (3) Check if hotel offers group discounts for 10+ people, (4) Verify cancellation policy - aim for free cancellation up to 7 days before, (5) Read recent reviews on Google Maps and TripAdvisor before booking, (6) WhatsApp the hotel directly after booking to confirm group arrangement.
-
-**Common Mistakes**: Don't book without checking location on Google Maps - some hotels are far from main attractions. Don't book non-refundable rates unless you're 100% certain of dates."
-
-EXAMPLE OF BAD TASK (Avoid this):
-Title: "Book accommodation"
-Description: "Find hotels in Udaipur and book them. Use Booking.com or similar websites to search for options that fit your budget."
-
----
-
-NOW CREATE THE DETAILED PLAN:
-
-Respond in valid JSON format with this exact structure:
-{{
-    "tasks": [
-        {{
-            "title": "Specific task title with key details (e.g., dates, quantities, locations)",
-            "description": "5-8 sentence detailed description with multiple options (A/B/C when applicable), specific recommendations, exact costs, timings, pro tips, and common mistakes to avoid",
-            "order": 1
-        }}
-    ],
-    "resources": [
-        {{
-            "title": "Specific resource name (not generic like 'Travel website')",
-            "url": "https://actual-working-url.com",
-            "type": "link"
-        }}
-    ]
-}}
-
-Resource types: "link", "document", "video", "other"
-
-CRITICAL REQUIREMENTS:
-- Be hyper-specific with numbers, names, costs, timings, brands
-- Always provide 2-3 detailed options when there are choices to make
-- Include practical warnings, tips, and common mistakes
-- Make descriptions long enough (5-8 sentences) to be truly actionable
-- Think like an experienced expert who's done this 100 times
-- No placeholders or "TBD" - give actual recommendations
-- Include URLs to real, helpful resources (not example.com)"""
-
+    
+    # Determine plan type and build prompt
+    plan_type = determine_plan_type(title, description, client)
+    prompt = build_plan_prompt(title, description, timeline, plan_type)
+    
     try:
-        # Call OpenAI API with GPT-4 for better quality
+        # Call OpenAI API with JSON mode for guaranteed valid JSON
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Using GPT-4 for superior quality
+            model="gpt-4o-mini",
             messages=[
-                {
-                    "role": "system",
-                    "content": "You are PlanGenie, an elite planning assistant that creates ULTRA-DETAILED, comprehensive plans with specific recommendations, multiple options, exact costs, and practical insider tips. You never give vague advice - every suggestion is specific, actionable, and based on real-world experience. You're like having a knowledgeable friend who's an expert in every field.",
-                },
+                {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
             ],
+            response_format={"type": "json_object"},  # Force JSON output
             temperature=0.7,
-            max_tokens=4000,  # Increased for detailed responses
+            max_tokens=3000,
         )
-
-        # Extract the response content
+        
+        # Extract and parse response
         content = response.choices[0].message.content.strip()
-
-        # Parse JSON response
-        # Remove markdown code blocks if present
-        if content.startswith("```json"):
-            content = content[7:]
-        if content.startswith("```"):
-            content = content[3:]
-        if content.endswith("```"):
-            content = content[:-3]
-        content = content.strip()
-
+        content = clean_json_response(content)
         plan_data = json.loads(content)
-
+        
         # Validate structure
-        if "tasks" not in plan_data or "resources" not in plan_data:
-            raise ValueError("Invalid plan structure from AI")
-
-        # Validate we have enough tasks and resources
-        if len(plan_data.get("tasks", [])) < 5:
-            raise ValueError("AI generated too few tasks")
-
+        validate_plan_structure(plan_data)
+        
         return plan_data
-
+    
     except json.JSONDecodeError as e:
-        print(f"JSON parsing error: {e}")
-        print(f"Response content: {content}")
+        print(f"❌ JSON parsing error: {e}")
+        print(f"📄 Raw response (first 500 chars): {content[:500]}")
+        print(f"⚠️  Using fallback plan for: {title}")
         return create_fallback_plan(title, description, timeline)
-
+    
     except Exception as e:
-        print(f"AI generation error: {e}")
-        raise
+        print(f"❌ AI generation error: {e}")
+        print(f"⚠️  Using fallback plan for: {title}")
+        return create_fallback_plan(title, description, timeline)
 
 
 def create_fallback_plan(title: str, description: str, timeline: str = None) -> Dict:
-    """Create a detailed fallback plan if AI fails"""
+    """
+    Create a high-quality fallback plan if AI generation fails.
+    Uses a structured approach applicable to any plan type.
+    """
+    from utils.prompt_builder import determine_plan_type_fallback
+    
+    plan_type = determine_plan_type_fallback(title, description)
+    categories = TASK_CATEGORIES[plan_type]
+    
+    timeline_context = f"within your {timeline} timeline" if timeline else "at your own pace"
+    
     return {
         "tasks": [
             {
-                "title": "Research and define ultra-specific, measurable objectives",
-                "description": f"Break down '{title}' into 3-5 SMART goals (Specific, Measurable, Achievable, Relevant, Time-bound). Instead of vague goals like 'learn Python', write 'Complete 30 LeetCode Easy problems and build 3 small projects within 4 weeks'. For each goal, define: (1) Exact success criteria (what does done look like?), (2) How you'll measure progress (daily/weekly metrics), (3) Resources needed (time, money, tools). Document in a spreadsheet or Notion with columns for Goal, Success Criteria, Measurement Method, Deadline, and Status. Review this daily.",
+                "title": f"{categories[0]}: Define clear, specific goals",
+                "description": f"Break down '{title}' into 3-5 specific, measurable objectives. Write down exactly what success looks like for each goal. Example: Instead of 'get better at X', write 'complete Y specific milestones by Z date'. Document these in a note-taking app like Notion or Google Docs for easy reference.",
                 "order": 1,
             },
             {
-                "title": "Create comprehensive resource inventory with specific items and costs",
-                "description": f"List EVERY resource needed for '{title}' with specific details. **Tools**: Name exact software (e.g., 'VS Code 1.85, Python 3.11, PostgreSQL 14'), include download links. **Courses**: List specific courses (e.g., 'Complete Python Bootcamp by Jose Portilla on Udemy, $15, 22 hours') with URLs. **Budget**: Break down all costs - subscriptions ($X/month), one-time purchases ($Y), estimated time value (Z hours/week at your hourly rate). **Alternatives**: For each paid resource, list a free alternative (e.g., 'freeCodeCamp Python course, free, 40 hours'). Create a comparison table to make informed decisions.",
+                "title": f"{categories[0]}: Research and gather key resources",
+                "description": f"Spend 2-3 hours researching the best resources for '{title}'. Look for: recommended tools/platforms, expert guides or tutorials, community forums for support, and estimated costs. Create a simple spreadsheet to compare options. Check reviews on Reddit, YouTube, or relevant communities to validate quality.",
                 "order": 2,
             },
             {
-                "title": "Design week-by-week detailed milestone roadmap with specific deliverables",
-                "description": f"Create a granular timeline{f' fitting your {timeline} deadline' if timeline else ''}. Break into weekly milestones with 3-5 concrete deliverables each. **Week 1 Example**: (1) Install all required software and test setup, (2) Complete chapters 1-3 of main course, (3) Build first practice project following tutorial, (4) Join 2 online communities and introduce yourself, (5) Set up daily habit tracking. For each week, estimate hours needed (be realistic, add 20% buffer). Identify dependencies (Week 2 can't start without Week 1 completion). Use project management tools like Notion, Trello, or Asana to visualize timeline.",
+                "title": f"{categories[1] if len(categories) > 1 else categories[0]}: Create detailed timeline and milestones",
+                "description": f"Map out your plan {timeline_context} with specific weekly or bi-weekly milestones. For each milestone, list 2-3 concrete deliverables. Use a project management tool (Trello, Asana, or Google Calendar) to set reminders. Build in 15-20% buffer time for unexpected delays or learning curves.",
                 "order": 3,
             },
             {
-                "title": "Conduct comprehensive risk assessment with detailed contingency plans",
-                "description": "List 7-10 things that could derail your plan. For each risk: **Risk**: 'Getting stuck on complex concepts' (Likelihood: High, Impact: High). **Prevention**: Allocate 2 hours/week for Q&A sessions, join Discord study groups. **Contingency**: If stuck >2 hours, book 1-hour mentor session on Codementor ($30-50) or post on Stack Overflow. **Budget Impact**: Keep $100-200 emergency learning fund. Other common risks: time constraints (solution: reduce scope by 20%), lost motivation (solution: accountability partner + gamification), unexpected life events (solution: build 30% time buffer). Rate each risk as High/Medium/Low for both likelihood and impact.",
+                "title": f"{categories[1] if len(categories) > 1 else categories[0]}: Set up tools and environment",
+                "description": f"Install and configure all necessary tools, software, or equipment needed for '{title}'. Create accounts on relevant platforms. Set up your workspace (physical or digital). Test that everything works properly. Bookmark important resources and organize them in browser folders or a bookmark manager.",
                 "order": 4,
             },
             {
-                "title": "Implement robust progress tracking dashboard with key metrics",
-                "description": "Set up comprehensive tracking system. **Tool Options**: (A) Google Sheets (free, customizable), (B) Notion (free, beautiful templates), (C) Airtable (free tier, database-style). **Track These Metrics**: (1) Time spent daily (use Toggl or RescueTime), (2) Tasks completed vs planned (%), (3) Quality self-rating (1-10 scale with criteria), (4) Energy levels (morning/afternoon/evening), (5) Blockers encountered (log each with resolution time), (6) Learning velocity (concepts mastered per week). **Review Schedule**: 5-min daily check-in (before bed), 30-min weekly deep dive (Sunday evening), monthly retrospective with adjustments. Set up automated reminders.",
+                "title": f"{categories[2] if len(categories) > 2 else categories[0]}: Start with foundational tasks",
+                "description": f"Begin with the most fundamental aspects of your plan. Focus on building a strong foundation before advancing to complex topics. Spend your first week on basics - this prevents confusion later. Follow the 80/20 rule: identify the 20% of skills/knowledge that will give you 80% of results.",
                 "order": 5,
             },
             {
-                "title": "Establish multi-layered accountability system with specific commitments",
-                "description": "Build accountability through: **Layer 1 - Accountability Partner**: Find someone with similar goals. Meet bi-weekly (30 min video calls), share weekly progress reports, set consequences for missed commitments (e.g., $20 donation to charity). Use platforms like Focusmate or r/GetStudying to find partners. **Layer 2 - Community**: Join 2-3 online communities (Discord servers, subreddits, Slack groups), post weekly updates (builds social pressure), help others (reinforces learning). **Layer 3 - Public Commitment**: Tweet/post your goal and weekly progress (social accountability). **Layer 4 - Coach/Mentor**: Optional but powerful - hire coach ($50-150/session) for monthly check-ins.",
+                "title": f"{categories[2] if len(categories) > 2 else categories[0]}: Implement daily/weekly routines",
+                "description": f"Create consistent habits by scheduling specific times for working on '{title}'. Block out 30-90 minutes daily or 2-4 focused sessions weekly. Use habit tracking apps (Habitica, Streaks) to maintain momentum. Studies show it takes 21-66 days to form a habit, so commit to at least 30 days of consistency.",
                 "order": 6,
             },
             {
-                "title": "Execute Phase 1 with hour-by-hour daily schedules and specific tasks",
-                "description": "Start with FIRST week's milestone. Create detailed daily schedule: **Monday Example**: 6:00-6:30 AM: Review goals and plan day. 9:00-10:30 AM: Read Chapter 1 (25 pages, take notes), 10:30-11:00 AM: Break + review notes. 11:00-12:30 PM: Watch tutorial video 1 (1.5 hrs), do exercises. 2:00-3:00 PM: Complete 5 practice problems, document solutions. 3:00-3:30 PM: Join Discord, ask 2 questions, help 1 person. Use **Time Blocking**: Assign specific tasks to specific time slots. Use **Pomodoro Technique**: 25 min focused work, 5 min break. **Energy Management**: Do hardest tasks during peak energy hours (usually morning). Track actual vs planned time to improve estimates.",
+                "title": f"{categories[2] if len(categories) > 2 else categories[0]}: Track progress and adjust approach",
+                "description": "Set up a simple tracking system to measure your progress weekly. Track: tasks completed, time spent, obstacles encountered, wins achieved. Every Sunday, review your progress and adjust next week's plan based on what worked and what didn't. Celebrate small wins to maintain motivation.",
                 "order": 7,
             },
             {
-                "title": "Conduct thorough weekly reviews with data-driven adjustments",
-                "description": "Every Sunday 7-8 PM, complete structured review. **Part 1 - Wins Analysis** (10 min): What went exceptionally well? What specific actions led to success? How can you replicate this? **Part 2 - Gaps Analysis** (10 min): What didn't get done? Root cause analysis (time, energy, skills, motivation?). Which gaps matter most? **Part 3 - Blocker Resolution** (15 min): What's currently blocking progress? For each blocker, brainstorm 3 solutions, pick 1 to implement this week. **Part 4 - Plan Adjustment** (15 min): Based on learnings, adjust next week's plan. If consistently behind, reduce scope by 15-20% OR extend timeline. **Part 5 - Celebration** (10 min): Acknowledge progress, treat yourself. Share wins with accountability partner. Document insights in journal for future reference.",
+                "title": f"{categories[3] if len(categories) > 3 else categories[-1]}: Build accountability and support",
+                "description": "Find an accountability partner, join an online community, or share your goals publicly. Schedule weekly check-ins (30 min) to report progress. Join relevant Discord servers, subreddits, or Facebook groups related to your plan. Engaging with others doing similar things boosts motivation and provides valuable insights.",
                 "order": 8,
             },
         ],
         "resources": [
             {
-                "title": "Notion - Free Project Planning Templates",
-                "url": "https://www.notion.so/templates/category/project-management",
+                "title": "Notion - Free Planning Templates",
+                "url": "https://www.notion.so/templates",
                 "type": "link",
             },
             {
-                "title": "Trello - Visual Task Management (Free)",
+                "title": "Trello - Visual Task Management",
                 "url": "https://trello.com",
                 "type": "link",
             },
             {
-                "title": "Toggl Track - Time Tracking Tool",
-                "url": "https://toggl.com/track",
-                "type": "link",
-            },
-            {
-                "title": "Focusmate - Virtual Co-working for Accountability",
-                "url": "https://www.focusmate.com",
+                "title": "Google Calendar - Schedule & Reminders",
+                "url": "https://calendar.google.com",
                 "type": "link",
             },
             {
@@ -241,18 +142,23 @@ def create_fallback_plan(title: str, description: str, timeline: str = None) -> 
                 "type": "link",
             },
             {
-                "title": "SMART Goals Complete Guide - MindTools",
+                "title": "Toggl Track - Time Tracking",
+                "url": "https://toggl.com/track",
+                "type": "link",
+            },
+            {
+                "title": "SMART Goals Framework - MindTools",
                 "url": "https://www.mindtools.com/arb6g1q/smart-goals",
                 "type": "link",
             },
             {
-                "title": "Project Management Institute - Planning Guide",
-                "url": "https://www.pmi.org/learning/library/beginners-guide-project-management",
+                "title": "Reddit r/GetDisciplined - Productivity Community",
+                "url": "https://www.reddit.com/r/getdisciplined",
                 "type": "link",
             },
             {
-                "title": "Reddit r/GetStudying - Accountability Community",
-                "url": "https://www.reddit.com/r/GetStudying",
+                "title": "Notion Template Gallery - Project Planning",
+                "url": "https://www.notion.so/templates/category/project-management",
                 "type": "link",
             },
         ],
