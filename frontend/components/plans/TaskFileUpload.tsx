@@ -163,7 +163,7 @@ export function TaskFileUpload({ taskId }: TaskFileUploadProps) {
           </Button>
         </label>
         {uploadingFile && (
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
             Uploading: {uploadingFile.name}
           </p>
         )}
@@ -171,30 +171,32 @@ export function TaskFileUpload({ taskId }: TaskFileUploadProps) {
 
       {/* Uploaded Files List */}
       {isLoading ? (
-        <div className="text-sm text-slate-500">Loading files...</div>
+        <div className="text-sm text-slate-500 dark:text-slate-400">
+          Loading files...
+        </div>
       ) : uploads.length > 0 ? (
         <div className="space-y-2">
           {uploads.map((upload) => (
             <div
               key={upload.id}
-              className="flex items-center justify-between rounded-md border bg-slate-50 p-2"
+              className="flex items-center justify-between rounded-md border bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-800"
             >
               <div className="flex min-w-0 flex-1 items-center gap-2">
                 {isImage(upload.mime_type) ? (
-                  <ImageIcon className="h-4 w-4 shrink-0 text-blue-500" />
+                  <ImageIcon className="h-4 w-4 shrink-0 text-blue-500 dark:text-blue-400" />
                 ) : (
-                  <File className="h-4 w-4 shrink-0 text-slate-500" />
+                  <File className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" />
                 )}
                 <div className="min-w-0 flex-1">
                   <a
                     href={upload.file_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block truncate text-sm font-medium text-blue-600 hover:underline"
+                    className="block truncate text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
                   >
                     {upload.file_name}
                   </a>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     {formatFileSize(upload.file_size)} •{' '}
                     {new Date(upload.uploaded_at).toLocaleDateString()}
                   </p>
@@ -203,7 +205,7 @@ export function TaskFileUpload({ taskId }: TaskFileUploadProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 shrink-0 text-slate-400 hover:text-red-600"
+                className="h-8 w-8 shrink-0 text-slate-400 hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400"
                 onClick={() => handleDelete(upload)}
                 disabled={deleteMutation.isPending}
               >

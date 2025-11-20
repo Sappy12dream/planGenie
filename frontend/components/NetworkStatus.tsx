@@ -32,11 +32,11 @@ export function NetworkStatus() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom-5">
-      <div className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-3 text-white shadow-lg">
+      <div className="flex items-center gap-2 rounded-lg bg-red-600 dark:bg-red-700 px-4 py-3 text-white shadow-lg">
         <WifiOff className="h-5 w-5" />
         <div>
           <p className="font-medium">No Internet Connection</p>
-          <p className="text-sm text-red-100">
+          <p className="text-sm text-red-100 dark:text-red-200">
             Please check your network connection
           </p>
         </div>

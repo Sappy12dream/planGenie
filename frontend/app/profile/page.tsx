@@ -45,16 +45,16 @@ export default function ProfilePage() {
   // Get user initials for avatar
   const initials = user?.email
     ? user.email
-        .split('@')[0]
-        .substring(0, 2)
-        .toUpperCase()
+      .split('@')[0]
+      .substring(0, 2)
+      .toUpperCase()
     : 'U';
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950">
         {/* Header */}
-        <div className="border-b bg-white/50 backdrop-blur-sm">
+        <div className="border-b dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <Button
@@ -83,22 +83,22 @@ export default function ProfilePage() {
             <CardContent className="pt-6">
               <div className="flex items-center gap-6">
                 <Avatar className="h-20 w-20">
-                  <AvatarFallback className="bg-slate-900 text-2xl text-white">
+                  <AvatarFallback className="bg-slate-900 dark:bg-slate-700 text-2xl text-white">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <h1 className="mb-1 text-2xl font-bold text-slate-900">
+                  <h1 className="mb-1 text-2xl font-bold text-slate-900 dark:text-slate-100">
                     {user?.email?.split('@')[0] || 'User'}
                   </h1>
-                  <p className="text-slate-600">{user?.email}</p>
-                  <p className="mt-2 text-sm text-slate-500">
+                  <p className="text-slate-600 dark:text-slate-400">{user?.email}</p>
+                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                     Member since{' '}
                     {user?.created_at
                       ? new Date(user.created_at).toLocaleDateString('en-US', {
-                          month: 'long',
-                          year: 'numeric',
-                        })
+                        month: 'long',
+                        year: 'numeric',
+                      })
                       : 'Recently'}
                   </p>
                 </div>
@@ -108,7 +108,7 @@ export default function ProfilePage() {
 
           {/* Stats Grid */}
           <div className="mb-6">
-            <h2 className="mb-4 text-xl font-semibold text-slate-900">
+            <h2 className="mb-4 text-xl font-semibold text-slate-900 dark:text-slate-100">
               Your Statistics
             </h2>
             {isLoading ? (
@@ -128,13 +128,13 @@ export default function ProfilePage() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-sm font-medium text-slate-600">
+                    <CardTitle className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400">
                       <Target className="h-4 w-4" />
                       Total Plans
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold text-slate-900">
+                    <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
                       {totalPlans}
                     </p>
                   </CardContent>
@@ -148,7 +148,7 @@ export default function ProfilePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold text-blue-600">
+                    <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                       {activePlans}
                     </p>
                   </CardContent>
@@ -162,7 +162,7 @@ export default function ProfilePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold text-green-600">
+                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">
                       {completedPlans}
                     </p>
                   </CardContent>
@@ -176,7 +176,7 @@ export default function ProfilePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold text-purple-600">
+                    <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
                       {completionRate}%
                     </p>
                   </CardContent>
@@ -199,29 +199,29 @@ export default function ProfilePage() {
               ) : (
                 <>
                   <div className="mb-4 flex items-center justify-between">
-                    <span className="text-slate-600">
+                    <span className="text-slate-600 dark:text-slate-400">
                       {completedTasks} of {totalTasks} tasks completed
                     </span>
-                    <span className="font-semibold text-slate-900">
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">
                       {completionRate}%
                     </span>
                   </div>
-                  <div className="h-4 w-full rounded-full bg-slate-200">
+                  <div className="h-4 w-full rounded-full bg-slate-200 dark:bg-slate-700">
                     <div
                       className="h-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500"
                       style={{ width: `${completionRate}%` }}
                     />
                   </div>
                   <div className="mt-6 grid grid-cols-2 gap-4">
-                    <div className="rounded-lg border bg-slate-50 p-4">
-                      <p className="text-sm text-slate-600">Total Tasks</p>
-                      <p className="text-2xl font-bold text-slate-900">
+                    <div className="rounded-lg border dark:border-slate-800 bg-slate-50 dark:bg-slate-800 p-4">
+                      <p className="text-sm text-slate-600 dark:text-slate-400">Total Tasks</p>
+                      <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                         {totalTasks}
                       </p>
                     </div>
-                    <div className="rounded-lg border bg-green-50 p-4">
-                      <p className="text-sm text-green-700">Completed Tasks</p>
-                      <p className="text-2xl font-bold text-green-600">
+                    <div className="rounded-lg border dark:border-green-900 bg-green-50 dark:bg-green-950 p-4">
+                      <p className="text-sm text-green-700 dark:text-green-300">Completed Tasks</p>
+                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                         {completedTasks}
                       </p>
                     </div>

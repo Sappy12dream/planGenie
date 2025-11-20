@@ -46,9 +46,9 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
   const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
 
   const statusColors = {
-    pending: 'bg-slate-100 text-slate-700',
-    in_progress: 'bg-blue-100 text-blue-700',
-    completed: 'bg-green-100 text-green-700',
+    pending: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+    in_progress: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+    completed: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300',
   };
 
   const statusLabels = {
@@ -205,12 +205,12 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
 
   return (
     <div
-      className={`group flex items-start gap-3 rounded-lg border bg-white p-4 transition-shadow ${
-        isDragging ? 'shadow-lg' : 'hover:shadow-sm'
+      className={`group flex items-start gap-3 rounded-lg border bg-white dark:bg-slate-900 dark:border-slate-800 p-4 transition-shadow ${
+        isDragging ? 'shadow-lg dark:shadow-slate-900/50' : 'hover:shadow-sm dark:hover:shadow-slate-900/50'
       }`}
     >
       {/* Drag Handle */}
-      <div className="mt-1 shrink-0 cursor-grab text-slate-300 transition-colors hover:text-slate-500 active:cursor-grabbing">
+      <div className="mt-1 shrink-0 cursor-grab text-slate-300 dark:text-slate-700 transition-colors hover:text-slate-500 dark:hover:text-slate-500 active:cursor-grabbing">
         <GripVertical className="h-5 w-5" />
       </div>
 
@@ -235,7 +235,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
             {task.description && !isEditingTitle && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-0.5 shrink-0 text-slate-400 hover:text-slate-600"
+                className="mt-0.5 shrink-0 text-slate-400 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-400"
               >
                 {isExpanded ? (
                   <ChevronDown className="h-4 w-4" />
@@ -255,7 +255,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
                 onBlur={handleTitleSave}
                 onKeyDown={handleTitleKeyDown}
                 onMouseDown={(e) => e.stopPropagation()}
-                className="flex-1 rounded border border-blue-400 px-2 py-1 font-medium text-slate-900 outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 rounded border border-blue-400 dark:border-blue-600 px-2 py-1 font-medium text-slate-900 dark:text-slate-100 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={updateTaskMutation.isPending}
               />
             ) : (
@@ -269,9 +269,9 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
                     }
                   }
                 }}
-                className={`flex-1 cursor-pointer font-medium text-slate-900 transition-all duration-200 hover:text-blue-600 ${
+                className={`flex-1 cursor-pointer font-medium text-slate-900 dark:text-slate-100 transition-all duration-200 hover:text-blue-600 dark:hover:text-blue-400 ${
                   task.status === 'completed'
-                    ? 'text-slate-500 line-through'
+                    ? 'text-slate-500 dark:text-slate-500 line-through'
                     : ''
                 }`}
               >
@@ -289,7 +289,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
         {task.description && isExpanded && !isEditingDescription && (
           <div
             onClick={() => !isDragging && setIsEditingDescription(true)}
-            className="mb-3 cursor-pointer rounded-lg bg-slate-50 p-3 hover:bg-slate-100"
+            className="mb-3 cursor-pointer rounded-lg bg-slate-50 dark:bg-slate-800 p-3 hover:bg-slate-100 dark:hover:bg-slate-700"
           >
             <TaskDescription
               description={task.description}
@@ -307,7 +307,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
             onBlur={handleDescriptionSave}
             onKeyDown={handleDescriptionKeyDown}
             onMouseDown={(e) => e.stopPropagation()}
-            className="mb-3 w-full rounded border border-blue-400 px-2 py-1 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-blue-500"
+            className="mb-3 w-full rounded border border-blue-400 dark:border-blue-600 px-2 py-1 text-sm text-slate-600 dark:text-slate-300 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
             rows={6}
             disabled={updateTaskMutation.isPending}
             placeholder="Add a description... (Ctrl+Enter to save, Esc to cancel)"
@@ -317,14 +317,14 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
         {!task.description && !isEditingTitle && !isEditingDescription && (
           <button
             onClick={() => setIsEditingDescription(true)}
-            className="mb-2 text-sm text-slate-400 hover:text-blue-600"
+            className="mb-2 text-sm text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
           >
             + Add description
           </button>
         )}
 
         {task.due_date && (
-          <p className="mb-2 text-xs text-slate-500">
+          <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
             Due: {new Date(task.due_date).toLocaleDateString()}
           </p>
         )}
@@ -340,7 +340,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
 
         {/* File Upload Section - Only show when expanded */}
         {isExpanded && (
-          <div className="mt-3 border-t pt-3">
+          <div className="mt-3 border-t dark:border-slate-800 pt-3">
             <TaskFileUpload taskId={task.id} />
           </div>
         )}
@@ -357,7 +357,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="text-slate-400 hover:text-red-600"
+              className="text-slate-400 hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400"
             >
               <Trash2 className="h-4 w-4" />
             </Button>

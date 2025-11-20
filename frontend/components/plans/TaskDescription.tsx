@@ -25,7 +25,7 @@ export function TaskDescription({
         if (trimmedLine.match(/^\*\*Option [ABC]/)) {
           return (
             <div key={index} className="mt-3 mb-2">
-              <strong className="text-slate-900">
+              <strong className="text-slate-900 dark:text-slate-100">
                 {trimmedLine.replace(/\*\*/g, '')}
               </strong>
             </div>
@@ -36,7 +36,7 @@ export function TaskDescription({
         if (trimmedLine.startsWith('**Pro Tips**:')) {
           return (
             <div key={index} className="mt-3 mb-1">
-              <strong className="text-blue-700">Pro Tips:</strong>
+              <strong className="text-blue-700 dark:text-blue-400">Pro Tips:</strong>
             </div>
           );
         }
@@ -45,7 +45,7 @@ export function TaskDescription({
         if (trimmedLine.startsWith('**Common Mistakes**:')) {
           return (
             <div key={index} className="mt-3 mb-1">
-              <strong className="text-red-700">⚠️ Common Mistakes:</strong>
+              <strong className="text-red-700 dark:text-red-400">⚠️ Common Mistakes:</strong>
             </div>
           );
         }
@@ -86,7 +86,7 @@ export function TaskDescription({
 
   return (
     <div
-      className={`space-y-1 ${isCompleted ? 'text-slate-400' : 'text-slate-600'}`}
+      className={`space-y-1 ${isCompleted ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'}`}
     >
       {formatDescription(description)}
     </div>

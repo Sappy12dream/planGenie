@@ -27,8 +27,8 @@ export default function LoginPage() {
   // Show loading while checking initial auth state
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-linear-to-b from-slate-50 to-slate-100">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+      <div className="flex min-h-screen items-center justify-center bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400 dark:text-slate-500" />
       </div>
     );
   }
@@ -60,18 +60,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-b from-slate-50 to-slate-100 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="mb-8 text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-slate-900 dark:bg-slate-700 px-4 py-2">
             <Sparkles className="h-4 w-4 text-yellow-400" />
             <span className="text-sm font-medium text-white">PlanGenie</span>
           </div>
-          <h1 className="mb-2 text-3xl font-bold text-slate-900">
+          <h1 className="mb-2 text-3xl font-bold text-slate-900 dark:text-slate-100">
             Welcome Back
           </h1>
-          <p className="text-slate-600">
+          <p className="text-slate-600 dark:text-slate-400">
             Sign in to continue planning your goals
           </p>
         </div>
@@ -123,7 +123,7 @@ export default function LoginPage() {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-slate-500">
+                <span className="bg-white dark:bg-slate-900 px-2 text-slate-500 dark:text-slate-400">
                   Or continue with email
                 </span>
               </div>
@@ -158,8 +158,8 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <div className="rounded-md bg-red-50 p-3">
-                  <p className="text-sm text-red-800">{error}</p>
+                <div className="rounded-md bg-red-50 dark:bg-red-950 p-3">
+                  <p className="text-sm text-red-800 dark:text-red-300">{error}</p>
                 </div>
               )}
 
@@ -176,11 +176,11 @@ export default function LoginPage() {
             </form>
           </CardContent>
           <CardFooter className="flex justify-center">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               Don&apos;t have an account?{' '}
               <Link
                 href="/auth/signup"
-                className="text-blue-600 hover:underline"
+                className="text-blue-600 dark:text-blue-400 hover:underline"
               >
                 Sign up
               </Link>

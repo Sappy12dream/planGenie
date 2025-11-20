@@ -22,7 +22,11 @@ export function ChatSidebar({ planId, isOpen, onClose }: ChatSidebarProps) {
   const queryClient = useQueryClient();
 
   // Fetch messages
-  const { data: messages = [], isLoading, error } = useQuery({
+  const {
+    data: messages = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['chat-messages', planId],
     queryFn: () => chatApi.getMessages(planId),
     enabled: isOpen,
@@ -64,7 +68,7 @@ export function ChatSidebar({ planId, isOpen, onClose }: ChatSidebarProps) {
       {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/20 z-40 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/20 lg:hidden dark:bg-black/40"
           onClick={onClose}
         />
       )}
@@ -72,57 +76,64 @@ export function ChatSidebar({ planId, isOpen, onClose }: ChatSidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          'fixed top-0 right-0 h-full w-full lg:w-96 bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300',
+          'fixed top-0 right-0 z-50 flex h-full w-full flex-col bg-white shadow-2xl transition-transform duration-300 lg:w-96 dark:bg-slate-900',
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-slate-50">
+        <div className="flex items-center justify-between border-b bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800">
           <div className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-slate-700" />
-            <h2 className="font-semibold text-slate-900">AI Assistant</h2>
+            <MessageSquare className="h-5 w-5 text-slate-700 dark:text-slate-300" />
+            <h2 className="font-semibold text-slate-900 dark:text-slate-100">
+              AI Assistant
+            </h2>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="text-slate-500 hover:text-slate-700"
+            className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <X className="h-5 w-5" />
           </Button>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 space-y-4 overflow-y-auto p-4">
           {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            <div className="flex h-full items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-slate-400 dark:text-slate-500" />
             </div>
           ) : error ? (
-            <div className="flex flex-col items-center justify-center h-full text-center px-4">
-              <AlertCircle className="h-12 w-12 text-red-400 mb-4" />
-              <h3 className="font-semibold text-slate-900 mb-2">
+            <div className="flex h-full flex-col items-center justify-center px-4 text-center">
+              <AlertCircle className="mb-4 h-12 w-12 text-red-400" />
+              <h3 className="mb-2 font-semibold text-slate-900 dark:text-slate-100">
                 Failed to load messages
               </h3>
-              <p className="text-sm text-slate-600 mb-4">
+              <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">
                 {error instanceof Error ? error.message : 'An error occurred'}
               </p>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => queryClient.invalidateQueries({ queryKey: ['chat-messages', planId] })}
+                onClick={() =>
+                  queryClient.invalidateQueries({
+                    queryKey: ['chat-messages', planId],
+                  })
+                }
               >
                 Try Again
               </Button>
             </div>
           ) : messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center px-4">
-              <MessageSquare className="h-16 w-16 text-slate-300 mb-4" />
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">
+            <div className="flex h-full flex-col items-center justify-center px-4 text-center">
+              <MessageSquare className="mb-4 h-16 w-16 text-slate-300 dark:text-slate-700" />
+              <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Start a conversation
               </h3>
-              <p className="text-sm text-slate-600">
-                Ask me anything about your plan, tasks, or how to accomplish your goals.
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Ask me anything about your plan, tasks, or how to accomplish
+                your goals.
               </p>
             </div>
           ) : (
@@ -136,7 +147,7 @@ export function ChatSidebar({ planId, isOpen, onClose }: ChatSidebarProps) {
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t bg-white">
+        <div className="border-t bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
           <div className="flex gap-2">
             <Textarea
               placeholder="Ask me anything about your plan..."
@@ -145,13 +156,13 @@ export function ChatSidebar({ planId, isOpen, onClose }: ChatSidebarProps) {
               onKeyDown={handleKeyDown}
               disabled={sendMutation.isPending}
               rows={3}
-              className="resize-none"
+              className="resize-none dark:border-slate-700 dark:bg-slate-800 dark:placeholder:text-slate-500"
             />
             <Button
               onClick={handleSend}
               disabled={!message.trim() || sendMutation.isPending}
               size="icon"
-              className="flex-shrink-0"
+              className="shrink-0"
             >
               {sendMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -160,7 +171,7 @@ export function ChatSidebar({ planId, isOpen, onClose }: ChatSidebarProps) {
               )}
             </Button>
           </div>
-          <p className="text-xs text-slate-500 mt-2">
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
             Press Enter to send, Shift+Enter for new line
           </p>
         </div>

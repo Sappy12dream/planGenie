@@ -48,10 +48,10 @@ export function PlanInputForm() {
       toast.success('Plan generated successfully!', {
         description: 'Redirecting to your new plan...',
       });
-      
+
       // Small delay for toast to show
       setTimeout(() => {
-        window.location.href = `/plans/${plan.id}`;
+        router.push(`/plans/${plan.id}`);
       }, 500);
     },
     onError: (error: Error) => {
@@ -68,7 +68,7 @@ export function PlanInputForm() {
     toast.loading('Generating your plan with AI...', {
       id: 'generate-plan',
     });
-    
+
     generateMutation.mutate(data, {
       onSettled: () => {
         toast.dismiss('generate-plan');
@@ -80,51 +80,66 @@ export function PlanInputForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Title */}
       <div className="space-y-2">
-        <Label htmlFor="title">What do you want to achieve?</Label>
+        <Label htmlFor="title" className="dark:text-slate-200">
+          What do you want to achieve?
+        </Label>
         <Input
           id="title"
           placeholder="e.g., Learn Python, Launch a startup, Get fit"
           {...register('title')}
           disabled={generateMutation.isPending}
+          className="dark:border-slate-700 dark:bg-slate-800 dark:placeholder:text-slate-500"
         />
         {errors.title && (
-          <p className="text-sm text-red-500">{errors.title.message}</p>
+          <p className="text-sm text-red-500 dark:text-red-400">
+            {errors.title.message}
+          </p>
         )}
       </div>
 
       {/* Description */}
       <div className="space-y-2">
-        <Label htmlFor="description">Tell us more about your goal</Label>
+        <Label htmlFor="description" className="dark:text-slate-200">
+          Tell us more about your goal
+        </Label>
         <Textarea
           id="description"
           placeholder="Describe what you want to accomplish, why it matters to you, and any specific requirements..."
           rows={5}
           {...register('description')}
           disabled={generateMutation.isPending}
+          className="dark:border-slate-700 dark:bg-slate-800 dark:placeholder:text-slate-500"
         />
         {errors.description && (
-          <p className="text-sm text-red-500">{errors.description.message}</p>
+          <p className="text-sm text-red-500 dark:text-red-400">
+            {errors.description.message}
+          </p>
         )}
       </div>
 
       {/* Timeline */}
       <div className="space-y-2">
-        <Label htmlFor="timeline">Timeline (optional)</Label>
+        <Label htmlFor="timeline" className="dark:text-slate-200">
+          Timeline (optional)
+        </Label>
         <Input
           id="timeline"
           placeholder="e.g., 2 weeks, 1 month, 3 months"
           {...register('timeline')}
           disabled={generateMutation.isPending}
+          className="dark:border-slate-700 dark:bg-slate-800 dark:placeholder:text-slate-500"
         />
         {errors.timeline && (
-          <p className="text-sm text-red-500">{errors.timeline.message}</p>
+          <p className="text-sm text-red-500 dark:text-red-400">
+            {errors.timeline.message}
+          </p>
         )}
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="rounded-md bg-red-50 p-4 border border-red-200">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="rounded-md border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/30">
+          <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
         </div>
       )}
 

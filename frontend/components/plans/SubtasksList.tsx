@@ -108,7 +108,7 @@ export function SubtasksList({ taskId, taskTitle, taskDescription }: SubtasksLis
 
   if (isLoading) {
     return (
-      <div className="ml-8 mt-2 text-sm text-slate-500">
+      <div className="ml-8 mt-2 text-sm text-slate-500 dark:text-slate-400">
         <Loader2 className="h-4 w-4 animate-spin" />
       </div>
     );
@@ -122,7 +122,7 @@ export function SubtasksList({ taskId, taskTitle, taskDescription }: SubtasksLis
           {subtasks.map((subtask) => (
             <div
               key={subtask.id}
-              className="group flex items-start gap-2 rounded py-1 hover:bg-slate-50"
+              className="group flex items-start gap-2 rounded py-1 hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               <Checkbox
                 checked={subtask.status === 'completed'}
@@ -132,8 +132,8 @@ export function SubtasksList({ taskId, taskTitle, taskDescription }: SubtasksLis
               <span
                 className={`flex-1 text-sm ${
                   subtask.status === 'completed'
-                    ? 'text-slate-400 line-through'
-                    : 'text-slate-700'
+                    ? 'text-slate-400 dark:text-slate-500 line-through'
+                    : 'text-slate-700 dark:text-slate-300'
                 }`}
               >
                 {subtask.title}
@@ -144,7 +144,7 @@ export function SubtasksList({ taskId, taskTitle, taskDescription }: SubtasksLis
                 className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
                 onClick={() => deleteMutation.mutate(subtask.id)}
               >
-                <Trash2 className="h-3 w-3 text-slate-400 hover:text-red-600" />
+                <Trash2 className="h-3 w-3 text-slate-400 hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400" />
               </Button>
             </div>
           ))}
@@ -165,7 +165,7 @@ export function SubtasksList({ taskId, taskTitle, taskDescription }: SubtasksLis
               }
             }}
             placeholder="Add a subtask..."
-            className="h-8 text-sm"
+            className="h-8 text-sm dark:bg-slate-800 dark:border-slate-700"
             autoFocus
           />
           <Button
@@ -183,7 +183,7 @@ export function SubtasksList({ taskId, taskTitle, taskDescription }: SubtasksLis
             variant="ghost"
             size="sm"
             onClick={() => setIsAddingSubtask(true)}
-            className="h-7 text-xs text-slate-600 hover:text-slate-900"
+            className="h-7 text-xs text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
           >
             <Plus className="mr-1 h-3 w-3" />
             Add subtask
@@ -195,7 +195,7 @@ export function SubtasksList({ taskId, taskTitle, taskDescription }: SubtasksLis
               size="sm"
               onClick={() => generateMutation.mutate()}
               disabled={generateMutation.isPending}
-              className="h-7 text-xs text-blue-600 hover:text-blue-700"
+              className="h-7 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
             >
               {generateMutation.isPending ? (
                 <>

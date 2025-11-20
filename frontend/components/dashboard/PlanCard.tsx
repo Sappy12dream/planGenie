@@ -55,10 +55,10 @@ export function PlanCard({ plan }: PlanCardProps) {
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   const statusColors = {
-    draft: 'bg-slate-100 text-slate-700',
-    active: 'bg-blue-100 text-blue-700',
-    completed: 'bg-green-100 text-green-700',
-    archived: 'bg-slate-100 text-slate-500',
+    draft: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+    active: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+    completed: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300',
+    archived: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
   };
 
   const deleteMutation = useMutation({
@@ -103,7 +103,7 @@ export function PlanCard({ plan }: PlanCardProps) {
 
   return (
     <>
-      <Card className="cursor-pointer transition-shadow hover:shadow-lg">
+      <Card className="cursor-pointer transition-shadow hover:shadow-lg dark:hover:shadow-slate-900/50">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <CardTitle
@@ -147,7 +147,7 @@ export function PlanCard({ plan }: PlanCardProps) {
                 )}
                 <DropdownMenuItem
                   onClick={() => setShowDeleteDialog(true)}
-                  className="text-red-600"
+                  className="text-red-600 dark:text-red-400"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete
@@ -168,7 +168,7 @@ export function PlanCard({ plan }: PlanCardProps) {
           onClick={() => router.push(`/plans/${plan.id}`)}
         >
           {plan.description && (
-            <p className="mb-4 line-clamp-2 text-sm text-slate-600">
+            <p className="mb-4 line-clamp-2 text-sm text-slate-600 dark:text-slate-400">
               {plan.description}
             </p>
           )}
@@ -176,14 +176,14 @@ export function PlanCard({ plan }: PlanCardProps) {
           {/* Progress Bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-600">Progress</span>
-              <span className="font-medium text-slate-900">
+              <span className="text-slate-600 dark:text-slate-400">Progress</span>
+              <span className="font-medium text-slate-900 dark:text-slate-100">
                 {Math.round(progress)}%
               </span>
             </div>
-            <div className="h-2 w-full rounded-full bg-slate-200">
+            <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800">
               <div
-                className="h-2 rounded-full bg-blue-600 transition-all duration-300"
+                className="h-2 rounded-full bg-blue-600 dark:bg-blue-500 transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -192,22 +192,22 @@ export function PlanCard({ plan }: PlanCardProps) {
           {/* Stats */}
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-slate-600">Tasks</p>
-              <p className="text-lg font-semibold text-slate-900">
+              <p className="text-xs text-slate-600 dark:text-slate-400">Tasks</p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 {completedTasks}/{totalTasks}
               </p>
             </div>
             <div>
-              <p className="text-xs text-slate-600">Resources</p>
-              <p className="text-lg font-semibold text-slate-900">
+              <p className="text-xs text-slate-600 dark:text-slate-400">Resources</p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 {plan.resources.length}
               </p>
             </div>
           </div>
         </CardContent>
 
-        <CardFooter className="border-t pt-3">
-          <p className="text-xs text-slate-500">
+        <CardFooter className="border-t pt-3 dark:border-slate-800">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Created {new Date(plan.created_at).toLocaleDateString()}
           </p>
         </CardFooter>

@@ -41,11 +41,11 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-linear-to-b from-slate-50 to-slate-100">
+      <div className="min-h-screen bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
         {/* Header */}
-        <div className="border-b bg-white/50 backdrop-blur-sm">
+        <div className="border-b bg-white/50 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/50">
           <div className="container mx-auto flex items-center justify-between px-4 py-4">
-            <div className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 dark:bg-slate-700">
               <Sparkles className="h-4 w-4 text-yellow-400" />
               <span className="text-sm font-medium text-white">PlanGenie</span>
             </div>
@@ -59,7 +59,7 @@ export default function DashboardPage() {
                     className="h-10 w-10 rounded-full p-0"
                   >
                     <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-slate-900 text-white">
+                      <AvatarFallback className="bg-slate-900 text-white dark:bg-slate-700">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
@@ -95,12 +95,12 @@ export default function DashboardPage() {
           {/* Page Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="mb-2 text-3xl font-bold text-slate-900">
+              <h1 className="mb-2 text-3xl font-bold text-slate-900 dark:text-slate-100">
                 My Plans
               </h1>
-              <p className="text-slate-600">
+              <p className="text-slate-600 dark:text-slate-400">
                 {isLoading ? (
-                  <span className="inline-block h-5 w-20 animate-pulse rounded bg-slate-200" />
+                  <span className="inline-block h-5 w-20 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
                 ) : (
                   <>
                     {plans.length} {plans.length === 1 ? 'plan' : 'plans'} total
@@ -116,31 +116,37 @@ export default function DashboardPage() {
 
           {/* Stats */}
           <div className="mb-8 grid grid-cols-3 gap-4">
-            <div className="rounded-lg border bg-white p-4">
-              <p className="mb-1 text-sm text-slate-600">Active</p>
-              <p className="text-2xl font-bold text-slate-900">
+            <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+              <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
+                Active
+              </p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {isLoading ? (
-                  <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200" />
+                  <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
                 ) : (
                   activePlans.length
                 )}
               </p>
             </div>
-            <div className="rounded-lg border bg-white p-4">
-              <p className="mb-1 text-sm text-slate-600">Completed</p>
-              <p className="text-2xl font-bold text-green-600">
+            <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+              <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
+                Completed
+              </p>
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {isLoading ? (
-                  <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200" />
+                  <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
                 ) : (
                   completedPlans.length
                 )}
               </p>
             </div>
-            <div className="rounded-lg border bg-white p-4">
-              <p className="mb-1 text-sm text-slate-600">Archived</p>
-              <p className="text-2xl font-bold text-slate-600">
+            <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+              <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
+                Archived
+              </p>
+              <p className="text-2xl font-bold text-slate-600 dark:text-slate-400">
                 {isLoading ? (
-                  <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200" />
+                  <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
                 ) : (
                   archivedPlans.length
                 )}
@@ -193,11 +199,11 @@ export default function DashboardPage() {
             </div>
           ) : plans.length === 0 ? (
             <div className="py-16 text-center">
-              <Sparkles className="mx-auto mb-4 h-12 w-12 text-slate-300" />
-              <h3 className="mb-2 text-lg font-semibold text-slate-900">
+              <Sparkles className="mx-auto mb-4 h-12 w-12 text-slate-300 dark:text-slate-700" />
+              <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
                 No plans yet
               </h3>
-              <p className="mb-6 text-slate-600">
+              <p className="mb-6 text-slate-600 dark:text-slate-400">
                 Create your first plan to get started!
               </p>
               <Button onClick={() => router.push('/new-plan')}>

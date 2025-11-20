@@ -37,7 +37,7 @@ export function PlanCardSkeleton() {
         </div>
       </CardContent>
 
-      <CardFooter className="border-t pt-3">
+      <CardFooter className="border-t dark:border-slate-800 pt-3">
         <Skeleton className="h-3 w-32" />
       </CardFooter>
     </Card>

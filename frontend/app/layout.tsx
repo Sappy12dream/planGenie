@@ -6,6 +6,7 @@ import { Toaster } from 'sonner';
 import { QueryProvider } from '@/lib/QueryProvider';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { NetworkStatus } from '@/components/NetworkStatus';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -38,17 +39,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ErrorBoundary>
-          <AuthProvider>
-            <QueryProvider>
-              {children}
-              <NetworkStatus />
-              <Toaster position="top-right" richColors />
-            </QueryProvider>
-          </AuthProvider>
-        </ErrorBoundary>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ErrorBoundary>
+            <AuthProvider>
+              <QueryProvider>
+                {children}
+                <NetworkStatus />
+                <Toaster position="top-right" richColors />
+              </QueryProvider>
+            </AuthProvider>
+          </ErrorBoundary>
+        </ThemeProvider>
       </body>
     </html>
   );

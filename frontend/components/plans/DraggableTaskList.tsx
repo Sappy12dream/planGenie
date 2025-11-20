@@ -77,9 +77,8 @@ export function DraggableTaskList({ tasks, planId }: DraggableTaskListProps) {
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
-                    className={`transition-shadow ${
-                      snapshot.isDragging ? 'shadow-lg' : ''
-                    }`}
+                    className={`transition-shadow ${snapshot.isDragging ? 'shadow-lg dark:shadow-slate-900/50' : ''
+                      }`}
                   >
                     <TaskItem
                       task={task}

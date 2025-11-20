@@ -92,7 +92,7 @@ export function AddTaskDialog({ planId }: AddTaskDialogProps) {
               disabled={createMutation.isPending}
             />
             {errors.title && (
-              <p className="text-sm text-red-500">{errors.title.message}</p>
+              <p className="text-sm text-red-500 dark:text-red-400">{errors.title.message}</p>
             )}
           </div>
 
@@ -106,7 +106,7 @@ export function AddTaskDialog({ planId }: AddTaskDialogProps) {
               disabled={createMutation.isPending}
             />
             {errors.description && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-red-500 dark:text-red-400">
                 {errors.description.message}
               </p>
             )}

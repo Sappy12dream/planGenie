@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Bell, Moon, Trash2, LogOut } from 'lucide-react';
+import { ArrowLeft, Bell, Moon, Sun, Trash2, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -32,30 +33,26 @@ import {
 export default function SettingsPage() {
   const router = useRouter();
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
 
-  // Local state for preferences (in a real app, these would be saved to a database)
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [taskReminders, setTaskReminders] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
   const [weeklyDigest, setWeeklyDigest] = useState(false);
 
   const handleSavePreferences = () => {
-    // In a real app, you'd save these to your backend
     toast.success('Preferences saved successfully');
   };
 
   const handleDeleteAccount = async () => {
-    // In a real app, you'd call an API to delete the account
     toast.error('Account deletion is not yet implemented');
-    // await deleteAccount();
-    // signOut();
   };
+
+  const isDarkMode = theme === 'dark';
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-linear-to-b from-slate-50 to-slate-100">
-        {/* Header */}
-        <div className="border-b bg-white/50 backdrop-blur-sm">
+      <div className="min-h-screen bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+        <div className="border-b bg-white/50 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/50">
           <div className="container mx-auto px-4 py-4">
             <Button
               variant="ghost"
@@ -70,11 +67,14 @@ export default function SettingsPage() {
 
         <div className="container mx-auto max-w-4xl px-4 py-8">
           <div className="mb-8">
-            <h1 className="mb-2 text-3xl font-bold text-slate-900">Settings</h1>
-            <p className="text-slate-600">Manage your account preferences</p>
+            <h1 className="mb-2 text-3xl font-bold text-slate-900 dark:text-slate-100">
+              Settings
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400">
+              Manage your account preferences
+            </p>
           </div>
 
-          {/* Account Information */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Account Information</CardTitle>
@@ -82,12 +82,18 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label className="text-slate-600">Email Address</Label>
-                <p className="mt-1 text-slate-900">{user?.email}</p>
+                <Label className="text-slate-600 dark:text-slate-400">
+                  Email Address
+                </Label>
+                <p className="mt-1 text-slate-900 dark:text-slate-100">
+                  {user?.email}
+                </p>
               </div>
               <div>
-                <Label className="text-slate-600">Account Created</Label>
-                <p className="mt-1 text-slate-900">
+                <Label className="text-slate-600 dark:text-slate-400">
+                  Account Created
+                </Label>
+                <p className="mt-1 text-slate-900 dark:text-slate-100">
                   {user?.created_at
                     ? new Date(user.created_at).toLocaleDateString('en-US', {
                         month: 'long',
@@ -98,15 +104,16 @@ export default function SettingsPage() {
                 </p>
               </div>
               <div>
-                <Label className="text-slate-600">User ID</Label>
-                <p className="mt-1 font-mono text-xs text-slate-600">
+                <Label className="text-slate-600 dark:text-slate-400">
+                  User ID
+                </Label>
+                <p className="mt-1 font-mono text-xs text-slate-600 dark:text-slate-400">
                   {user?.id}
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Notifications */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -123,7 +130,7 @@ export default function SettingsPage() {
                   <Label htmlFor="email-notifications">
                     Email Notifications
                   </Label>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     Receive email updates about your plans
                   </p>
                 </div>
@@ -139,7 +146,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="task-reminders">Task Reminders</Label>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     Get reminders for upcoming task deadlines
                   </p>
                 </div>
@@ -155,7 +162,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="weekly-digest">Weekly Digest</Label>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     Receive a weekly summary of your progress
                   </p>
                 </div>
@@ -172,11 +179,14 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Appearance */}
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Moon className="h-5 w-5" />
+                {isDarkMode ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
                 Appearance
               </CardTitle>
               <CardDescription>Customize your interface</CardDescription>
@@ -185,55 +195,63 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="dark-mode">Dark Mode</Label>
-                  <p className="text-sm text-slate-500">
-                    Enable dark theme (coming soon)
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {theme === 'system'
+                      ? 'Following system preferences'
+                      : isDarkMode
+                        ? 'Dark theme enabled'
+                        : 'Light theme enabled'}
                   </p>
                 </div>
                 <Switch
                   id="dark-mode"
-                  checked={darkMode}
+                  checked={isDarkMode}
                   onCheckedChange={(checked) => {
-                    setDarkMode(checked);
-                    toast.info('Dark mode coming soon!');
+                    setTheme(checked ? 'dark' : 'light');
+                    toast.success(
+                      `Switched to ${checked ? 'dark' : 'light'} mode`
+                    );
                   }}
-                  disabled
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Danger Zone */}
-          <Card className="border-red-200 bg-red-50/50">
+          <Card className="border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20">
             <CardHeader>
-              <CardTitle className="text-red-900">Danger Zone</CardTitle>
-              <CardDescription className="text-red-700">
+              <CardTitle className="text-red-900 dark:text-red-400">
+                Danger Zone
+              </CardTitle>
+              <CardDescription className="text-red-700 dark:text-red-500">
                 Irreversible actions
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Logout */}
-              <div className="flex items-center justify-between rounded-lg border border-red-200 bg-white p-4">
+              <div className="flex items-center justify-between rounded-lg border border-red-200 bg-white p-4 dark:border-red-900/50 dark:bg-slate-900">
                 <div>
-                  <h3 className="font-medium text-slate-900">Logout</h3>
-                  <p className="text-sm text-slate-600">
+                  <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                    Logout
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
                     Sign out of your account
                   </p>
                 </div>
                 <Button
                   variant="outline"
                   onClick={() => signOut()}
-                  className="gap-2 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                  className="gap-2 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
                 >
                   <LogOut className="h-4 w-4" />
                   Logout
                 </Button>
               </div>
 
-              {/* Delete Account */}
-              <div className="flex items-center justify-between rounded-lg border border-red-200 bg-white p-4">
+              <div className="flex items-center justify-between rounded-lg border border-red-200 bg-white p-4 dark:border-red-900/50 dark:bg-slate-900">
                 <div>
-                  <h3 className="font-medium text-slate-900">Delete Account</h3>
-                  <p className="text-sm text-slate-600">
+                  <h3 className="font-medium text-slate-900 dark:text-slate-100">
+                    Delete Account
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
                     Permanently delete your account and all data
                   </p>
                 </div>
