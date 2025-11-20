@@ -15,10 +15,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, Sparkles, LogOut, User, Settings } from 'lucide-react';
+import { Plus, Sparkles, LogOut, User, Settings, HelpCircle } from 'lucide-react';
 import { PlanCard } from '@/components/dashboard/PlanCard';
 import { PlanCardSkeleton } from '@/components/dashboard/PlanCardSkeleton';
 import { Tutorial } from '@/components/tutorial/Tutorial';
+import { HelpButton } from '@/components/HelpButton';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -95,6 +96,10 @@ export default function DashboardPage() {
                   >
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/help')}>
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    Help & Guide
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => signOut()}>
@@ -254,6 +259,7 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+      <HelpButton />
     </ProtectedRoute>
   );
 }
