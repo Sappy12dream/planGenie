@@ -18,6 +18,7 @@ import {
 import { Plus, Sparkles, LogOut, User, Settings } from 'lucide-react';
 import { PlanCard } from '@/components/dashboard/PlanCard';
 import { PlanCardSkeleton } from '@/components/dashboard/PlanCardSkeleton';
+import { Tutorial } from '@/components/tutorial/Tutorial';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
+      <Tutorial />
       <div className="min-h-screen bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
         {/* Header */}
         <div className="border-b bg-white/50 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/50">
@@ -53,7 +55,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-4">
               {/* User Menu Dropdown */}
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger asChild data-tour="user-menu">
                   <Button
                     variant="ghost"
                     className="h-10 w-10 rounded-full p-0"
@@ -108,14 +110,14 @@ export default function DashboardPage() {
                 )}
               </p>
             </div>
-            <Button onClick={() => router.push('/new-plan')} className="gap-2">
+            <Button onClick={() => router.push('/new-plan')} className="gap-2" data-tour="create-plan">
               <Plus className="h-4 w-4" />
               New Plan
             </Button>
           </div>
 
           {/* Stats */}
-          <div className="mb-8 grid grid-cols-3 gap-4">
+          <div className="mb-8 grid grid-cols-3 gap-4" data-tour="stats-overview">
             <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
               <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
                 Active
@@ -155,7 +157,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Filter Tabs */}
-          <div className="mb-6 flex gap-2">
+          <div className="mb-6 flex gap-2" data-tour="filter-tabs">
             <Button
               variant={statusFilter === undefined ? 'default' : 'outline'}
               onClick={() => setStatusFilter(undefined)}
