@@ -36,7 +36,7 @@ export function DraggableTaskList({ tasks, planId }: DraggableTaskListProps) {
   });
 
   // Use dragged tasks while dragging, otherwise use props
-  const displayTasks = draggedTasks || tasks;
+  const displayTasks = draggedTasks || tasks || [];
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) {
@@ -44,7 +44,7 @@ export function DraggableTaskList({ tasks, planId }: DraggableTaskListProps) {
       return;
     }
 
-    const items = Array.from(tasks);
+    const items = Array.from(tasks || []);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 

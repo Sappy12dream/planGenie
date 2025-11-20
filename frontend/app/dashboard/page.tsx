@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { plansApi } from '@/lib/api/plans';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -27,10 +27,24 @@ export default function DashboardPage() {
     undefined
   );
 
-  const { data: plans = [], isLoading } = useQuery({
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ['plans', statusFilter],
-    queryFn: () => plansApi.getAllPlans(statusFilter),
+    queryFn: ({ pageParam = 1 }) =>
+      plansApi.getAllPlans(statusFilter, pageParam, 9), // Fetch 9 items per page (3x3 grid)
+    getNextPageParam: (lastPage: any[], allPages: any[]) => {
+      return lastPage?.length === 9 ? allPages?.length + 1 : undefined;
+    },
+    initialPageParam: 1,
+    retry: 3, // Retry failed requests 3 times
   });
+
+  const plans = data?.pages.flatMap((page: any[]) => page) || [];
 
   const activePlans = plans.filter((p) => p.status === 'active');
   const completedPlans = plans.filter((p) => p.status === 'completed');
@@ -218,6 +232,24 @@ export default function DashboardPage() {
               {plans.map((plan) => (
                 <PlanCard key={plan.id} plan={plan} />
               ))}
+            </div>
+          )}
+
+          {/* Load More Button */}
+          {hasNextPage && (
+            <div className="mt-8 flex justify-center">
+              <Button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                variant="outline"
+                className="min-w-[120px]"
+              >
+                {isFetchingNextPage ? (
+                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  'Load More'
+                )}
+              </Button>
             </div>
           )}
         </div>

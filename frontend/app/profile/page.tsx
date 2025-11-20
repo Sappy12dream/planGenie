@@ -32,10 +32,10 @@ export default function ProfilePage() {
   const activePlans = plans.filter((p) => p.status === 'active').length;
   const completedPlans = plans.filter((p) => p.status === 'completed').length;
 
-  const totalTasks = plans.reduce((sum, plan) => sum + plan.tasks.length, 0);
+  const totalTasks = plans.reduce((sum, plan) => sum + (plan.tasks?.length || 0), 0);
   const completedTasks = plans.reduce(
     (sum, plan) =>
-      sum + plan.tasks.filter((t) => t.status === 'completed').length,
+      sum + (plan.tasks || []).filter((t) => t.status === 'completed').length,
     0
   );
 

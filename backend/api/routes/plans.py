@@ -21,46 +21,48 @@ router = APIRouter(prefix="/api/plans", tags=["plans"])
 @router.get("/", response_model=List[PlanResponse])
 async def get_all_plans(
     status: str = None,
+    page: int = 1,
+    limit: int = 20,
     supabase: Client = Depends(get_supabase_client),
     user_id: str = Depends(get_user_from_token),
 ):
     """
     Get all plans for the current user
     Optional filter by status
+    Pagination support with page and limit
     """
     try:
-        # Build query
+        # Calculate range
+        start = (page - 1) * limit
+        end = start + limit - 1
+
+        # Build query with nested select for tasks and resources
+        # This avoids N+1 problem by fetching everything in one go
         query = (
             supabase.table("plans")
-            .select("*")
+            .select("*, tasks(*), resources(*)")
             .eq("user_id", user_id)
             .order("created_at", desc=True)
+            .range(start, end)
         )
 
         # Filter by status if provided
         if status:
             query = query.eq("status", status)
 
-        plans_result = query.execute()
+        # Execute query
+        result = query.execute()
 
-        # Get tasks and resources for each plan
+        # Transform data to match response model
         plans_with_details = []
-        for plan in plans_result.data:
-            plan_id = plan["id"]
-
-            # Get tasks
-            tasks_result = (
-                supabase.table("tasks")
-                .select("*")
-                .eq("plan_id", plan_id)
-                .order("order")
-                .execute()
-            )
-
-            # Get resources
-            resources_result = (
-                supabase.table("resources").select("*").eq("plan_id", plan_id).execute()
-            )
+        for plan in result.data:
+            # Tasks and resources are now nested in the plan object
+            # We need to handle potential None values if the join returns nothing (though unlikely for lists)
+            tasks = plan.get("tasks", [])
+            # Sort tasks by order
+            tasks.sort(key=lambda x: x.get("order", 0))
+            
+            resources = plan.get("resources", [])
 
             plan_response = PlanResponse(
                 id=plan["id"],
@@ -68,9 +70,9 @@ async def get_all_plans(
                 title=plan["title"],
                 description=plan["description"],
                 status=plan["status"],
-                tasks=[TaskResponse(**task) for task in tasks_result.data],
+                tasks=[TaskResponse(**task) for task in tasks],
                 resources=[
-                    ResourceResponse(**resource) for resource in resources_result.data
+                    ResourceResponse(**resource) for resource in resources
                 ],
                 created_at=plan["created_at"],
                 updated_at=plan["updated_at"],

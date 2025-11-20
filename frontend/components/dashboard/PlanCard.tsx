@@ -48,10 +48,10 @@ export function PlanCard({ plan }: PlanCardProps) {
   const queryClient = useQueryClient();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const completedTasks = plan.tasks.filter(
+  const completedTasks = (plan.tasks || []).filter(
     (t) => t.status === 'completed'
   ).length;
-  const totalTasks = plan.tasks.length;
+  const totalTasks = plan.tasks?.length || 0;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   const statusColors = {
@@ -200,7 +200,7 @@ export function PlanCard({ plan }: PlanCardProps) {
             <div>
               <p className="text-xs text-slate-600 dark:text-slate-400">Resources</p>
               <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                {plan.resources.length}
+                {plan.resources?.length || 0}
               </p>
             </div>
           </div>

@@ -13,8 +13,8 @@ interface PlanDisplayProps {
 }
 
 export function PlanDisplay({ plan }: PlanDisplayProps) {
-  const completedTasks = plan.tasks.filter((t) => t.status === 'completed').length;
-  const totalTasks = plan.tasks.length;
+  const completedTasks = (plan.tasks || []).filter((t) => t.status === 'completed').length;
+  const totalTasks = plan.tasks?.length || 0;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   const statusColors = {
@@ -25,7 +25,7 @@ export function PlanDisplay({ plan }: PlanDisplayProps) {
   };
 
   // Sort tasks by order
-  const sortedTasks = [...plan.tasks].sort((a, b) => a.order - b.order);
+  const sortedTasks = [...(plan.tasks || [])].sort((a, b) => a.order - b.order);
 
   return (
     <div className="space-y-8">
@@ -117,7 +117,7 @@ export function PlanDisplay({ plan }: PlanDisplayProps) {
           </div>
         </CardHeader>
         <CardContent>
-          {plan.tasks.length === 0 ? (
+          {(plan.tasks?.length || 0) === 0 ? (
             <div className="text-center py-12">
               <p className="text-slate-500 dark:text-slate-400 mb-4">No tasks yet</p>
               <AddTaskDialog planId={plan.id} />
@@ -129,7 +129,7 @@ export function PlanDisplay({ plan }: PlanDisplayProps) {
       </Card>
 
       {/* Resources Section */}
-      {plan.resources.length > 0 && (
+      {(plan.resources?.length || 0) > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -139,7 +139,7 @@ export function PlanDisplay({ plan }: PlanDisplayProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {plan.resources.map((resource) => (
+              {(plan.resources || []).map((resource) => (
                 <ResourceItem key={resource.id} resource={resource} />
               ))}
             </div>

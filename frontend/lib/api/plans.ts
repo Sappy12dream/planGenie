@@ -28,8 +28,15 @@ export const plansApi = {
   /**
    * Get all plans for current user
    */
-  async getAllPlans(status?: string): Promise<Plan[]> {
-    const params = status ? { status } : undefined;
+  async getAllPlans(
+    status?: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<Plan[]> {
+    const params: Record<string, any> = { page, limit };
+    if (status) {
+      params.status = status;
+    }
     return api.get<Plan[]>('/api/plans', { params });
   },
 
