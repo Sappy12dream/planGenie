@@ -39,3 +39,8 @@ npm-debug.log*
 # Database
 *.db
 *.sqlite
+
+# Planning & Documentation (local only)
+plan.md
+project.md
+STATUS_REVIEW.md
