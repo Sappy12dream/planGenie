@@ -32,6 +32,7 @@ class ChatSuggestionBase(BaseModel):
     related_task_ids: List[str] = []
     confidence_score: float = Field(..., ge=0, le=1)
     reasoning: Optional[str] = None
+    metadata: Dict[str, Any] = {}
 
 class ChatSuggestionCreate(ChatSuggestionBase):
     user_id: str

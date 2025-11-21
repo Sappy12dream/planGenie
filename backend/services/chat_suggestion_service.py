@@ -32,13 +32,19 @@ Format:
             "related_task_ids": ["task_uuid_1"],
             "confidence_score": 0.9,
             "reasoning": "Why you think this is important",
-            "suggested_tasks": [  # ONLY for 'add_task' type
-                {"title": "Buy flour", "description": "All purpose flour"}
-            ]
+            "metadata": {
+                "suggested_tasks": [  # REQUIRED for 'add_task' type
+                    {"title": "Buy flour", "description": "All purpose flour"}
+                ],
+                "operations": [ # REQUIRED for 'optimize' type (reorder)
+                    {"type": "reorder", "task_id": "uuid", "before_task_id": "uuid"} 
+                ]
+            }
         }
     ]
 }
 IMPORTANT: Titles must be 100% relevant to the content. Do NOT use generic titles like "Ticket Booking" unless it's actually about tickets.
+For 'optimize' suggestions that involve reordering, provide the 'operations' in metadata.
 """
 
 
@@ -104,6 +110,9 @@ def generate_proactive_suggestions(plan: Dict[str, Any], tasks: List[Dict[str, A
             # Handle enum conversion if needed (pydantic model_dump usually handles it but supabase might need strings)
             suggestion_dict["suggestion_type"] = suggestion.suggestion_type.value
             suggestion_dict["priority"] = suggestion.priority.value
+            # Ensure metadata is a dict (it should be from pydantic, but just in case)
+            if not isinstance(suggestion_dict.get("metadata"), dict):
+                 suggestion_dict["metadata"] = {}
             
             result = supabase.table("chat_suggestions").insert(suggestion_dict).execute()
             if result.data:
@@ -148,6 +157,8 @@ def accept_suggestion(suggestion_id: str, supabase: Client):
         _handle_breakdown_action(suggestion, supabase)
     elif suggestion["suggestion_type"] == "add_task":
         _handle_add_task_action(suggestion, supabase)
+    elif suggestion["suggestion_type"] == "optimize":
+        _handle_optimize_action(suggestion, supabase)
     
     # 3. Mark as accepted
     supabase.table("chat_suggestions")\
@@ -159,28 +170,73 @@ def _handle_add_task_action(suggestion: Dict[str, Any], supabase: Client):
     """
     Handle 'add_task' action: Add suggested tasks to the plan.
     """
-    # The AI should have provided suggested_tasks in the metadata
-    # But since we didn't store it in a dedicated column, we might need to parse it from description or 
-    # rely on the fact that we added 'suggested_tasks' to the JSON structure in the prompt.
-    # However, our DB schema for chat_suggestions doesn't have a 'suggested_tasks' column.
-    # It likely got stored in a JSONB column if we had one, but we defined specific columns.
-    # Wait, looking at schema: we don't have a generic data column!
-    # We only have: title, description, related_task_ids, reasoning.
+    metadata = suggestion.get("metadata", {})
+    suggested_tasks = metadata.get("suggested_tasks", [])
     
-    # WORKAROUND: Since we didn't add a JSONB 'data' column, we'll have to 
-    # generate the task on the fly based on the suggestion title/description.
-    # Or, we can just add a single task based on the description.
+    if not suggested_tasks:
+        # Fallback if no structured data
+        new_task = {
+            "plan_id": suggestion["plan_id"],
+            "title": f"New Task: {suggestion['title']}",
+            "description": suggestion["description"],
+            "status": "pending",
+            "order": 999 # Put at end
+        }
+        supabase.table("tasks").insert(new_task).execute()
+        return
+
+    for st in suggested_tasks:
+        new_task = {
+            "plan_id": suggestion["plan_id"],
+            "title": st.get("title", "New Task"),
+            "description": st.get("description", ""),
+            "status": "pending",
+            "order": 999
+        }
+        supabase.table("tasks").insert(new_task).execute()
+
+def _handle_optimize_action(suggestion: Dict[str, Any], supabase: Client):
+    """
+    Handle 'optimize' action: Reorder tasks.
+    """
+    metadata = suggestion.get("metadata", {})
+    operations = metadata.get("operations", [])
     
-    # Let's create a simple task based on the suggestion title for now.
-    
-    new_task = {
-        "plan_id": suggestion["plan_id"],
-        "title": f"New Task: {suggestion['title']}",
-        "description": suggestion["description"],
-        "status": "pending",
-        "order": 999 # Put at end
-    }
-    supabase.table("tasks").insert(new_task).execute()
+    for op in operations:
+        if op.get("type") == "reorder":
+            task_id = op.get("task_id")
+            before_task_id = op.get("before_task_id")
+            
+            if not task_id or not before_task_id:
+                continue
+            
+            # Get all tasks for plan
+            all_tasks = supabase.table("tasks").select("id, order").eq("plan_id", suggestion["plan_id"]).order("order").execute()
+            tasks_list = all_tasks.data
+            
+            # Find current index of task to move
+            task_to_move = next((t for t in tasks_list if t["id"] == task_id), None)
+            if not task_to_move:
+                continue
+                
+            # Remove from list
+            tasks_list = [t for t in tasks_list if t["id"] != task_id]
+            
+            # Find index to insert
+            insert_idx = -1
+            for i, t in enumerate(tasks_list):
+                if t["id"] == before_task_id:
+                    insert_idx = i
+                    break
+            
+            if insert_idx != -1:
+                tasks_list.insert(insert_idx, task_to_move)
+            else:
+                tasks_list.append(task_to_move)
+                
+            # Re-assign orders
+            for i, t in enumerate(tasks_list):
+                supabase.table("tasks").update({"order": i + 1}).eq("id", t["id"]).execute()
 
 
 def _handle_breakdown_action(suggestion: Dict[str, Any], supabase: Client):
