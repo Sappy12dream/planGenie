@@ -207,6 +207,18 @@ async def generate_plan(
                 }
             )
 
+        # Extract resources from AI response
+        resources_data = []
+        for resource in ai_response.get("resources", []):
+            resources_data.append(
+                {
+                    "plan_id": plan_id,
+                    "title": resource["title"],
+                    "url": resource["url"],
+                    "type": resource.get("type", "link"),
+                }
+            )
+
         # Compute AI intelligence aggregates for the plan
         total_estimated_hours = sum(task.get('estimated_time_hours') or 0 for task in tasks_data)
         total_estimated_cost_usd = sum(task.get('estimated_cost_usd') or 0 for task in tasks_data)
