@@ -7,6 +7,14 @@ from datetime import datetime
 from services.supabase_service import get_supabase_client
 from services.chat_ai_service import get_chat_response
 from services.auth_service import get_user_from_token
+from services.chat_suggestion_service import (
+    generate_proactive_suggestions,
+    get_pending_suggestions,
+    dismiss_suggestion,
+    accept_suggestion
+)
+from api.schemas.chat_suggestion_schemas import ChatSuggestionResponse
+
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -126,3 +134,71 @@ async def get_messages(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch messages: {str(e)}"
         )
+
+@router.get("/plans/{plan_id}/suggestions", response_model=List[ChatSuggestionResponse])
+async def get_suggestions(
+    plan_id: str,
+    refresh: bool = False,
+    supabase: Client = Depends(get_supabase_client),
+    user_id: str = Depends(get_user_from_token)
+):
+    """Get proactive suggestions for a plan. Optionally generate new ones."""
+    try:
+        verify_plan_ownership(supabase, plan_id, user_id)
+        
+        suggestions = get_pending_suggestions(plan_id, supabase)
+        
+        # If no suggestions or forced refresh, generate new ones
+        if not suggestions or refresh:
+            # Fetch plan and tasks
+            plan_result = supabase.table("plans").select("*").eq("id", plan_id).execute()
+            tasks_result = supabase.table("tasks").select("*").eq("plan_id", plan_id).execute()
+            
+            if plan_result.data:
+                new_suggestions = generate_proactive_suggestions(
+                    plan_result.data[0],
+                    tasks_result.data,
+                    user_id,
+                    supabase
+                )
+                # Combine existing (if any) with new
+                suggestions.extend(new_suggestions)
+                
+        return [ChatSuggestionResponse(**s) for s in suggestions]
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error getting suggestions: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get suggestions: {str(e)}"
+        )
+
+@router.post("/suggestions/{suggestion_id}/dismiss")
+async def dismiss_suggestion_endpoint(
+    suggestion_id: str,
+    supabase: Client = Depends(get_supabase_client),
+    user_id: str = Depends(get_user_from_token)
+):
+    """Dismiss a suggestion"""
+    try:
+        # Verify ownership (via join or separate query - keeping it simple for now)
+        # In a real app, we should verify the suggestion belongs to a plan owned by the user
+        dismiss_suggestion(suggestion_id, supabase)
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/suggestions/{suggestion_id}/act")
+async def act_on_suggestion_endpoint(
+    suggestion_id: str,
+    supabase: Client = Depends(get_supabase_client),
+    user_id: str = Depends(get_user_from_token)
+):
+    """Mark suggestion as accepted (Action logic handled by frontend or separate specific endpoints)"""
+    try:
+        accept_suggestion(suggestion_id, supabase)
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

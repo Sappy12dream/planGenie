@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { chatApi } from '@/lib/api/chat';
 import { ChatMessage } from './ChatMessage';
+import { ChatSuggestionCard } from '@/components/chat/ChatSuggestionCard';
+
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Send, Loader2, X, MessageSquare, AlertCircle } from 'lucide-react';
@@ -43,6 +45,32 @@ export function ChatSidebar({ planId, isOpen, onClose }: ChatSidebarProps) {
       toast.error('Failed to send message', {
         description: error.message,
       });
+    },
+  });
+
+  // Fetch suggestions
+  const { data: suggestions = [] } = useQuery({
+    queryKey: ['chat-suggestions', planId],
+    queryFn: () => chatApi.getSuggestions(planId),
+    enabled: isOpen,
+  });
+
+  // Suggestion mutations
+  const dismissMutation = useMutation({
+    mutationFn: (id: string) => chatApi.dismissSuggestion(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chat-suggestions', planId] });
+    },
+  });
+
+  const actMutation = useMutation({
+    mutationFn: (id: string) => chatApi.actOnSuggestion(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chat-suggestions', planId] });
+      toast.success('Suggestion accepted!');
+      // Optionally refresh tasks/plan if the action modified them
+      queryClient.invalidateQueries({ queryKey: ['plan', planId] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', planId] });
     },
   });
 
@@ -125,22 +153,43 @@ export function ChatSidebar({ planId, isOpen, onClose }: ChatSidebarProps) {
                 Try Again
               </Button>
             </div>
-          ) : messages.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center px-4 text-center">
-              <MessageSquare className="mb-4 h-16 w-16 text-slate-300 dark:text-slate-700" />
-              <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
-                Start a conversation
-              </h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Ask me anything about your plan, tasks, or how to accomplish
-                your goals.
-              </p>
-            </div>
           ) : (
             <>
-              {messages.map((msg) => (
-                <ChatMessage key={msg.id} message={msg} />
-              ))}
+              {/* Suggestions Area */}
+              {suggestions.length > 0 && (
+                <div className="mb-6 space-y-4">
+                  {suggestions.map((suggestion) => (
+                    <ChatSuggestionCard
+                      key={suggestion.id}
+                      suggestion={suggestion}
+                      onDismiss={(id) => dismissMutation.mutate(id)}
+                      onAccept={(id) => actMutation.mutate(id)}
+                    />
+                  ))}
+                  <div className="relative flex items-center py-2">
+                    <div className="grow border-t border-slate-200 dark:border-slate-700"></div>
+                    <span className="mx-4 shrink-0 text-xs text-slate-400">Chat History</span>
+                    <div className="grow border-t border-slate-200 dark:border-slate-700"></div>
+                  </div>
+                </div>
+              )}
+
+              {messages.length === 0 && suggestions.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center px-4 text-center">
+                  <MessageSquare className="mb-4 h-16 w-16 text-slate-300 dark:text-slate-700" />
+                  <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    Start a conversation
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Ask me anything about your plan, tasks, or how to accomplish
+                    your goals.
+                  </p>
+                </div>
+              ) : (
+                messages.map((msg) => (
+                  <ChatMessage key={msg.id} message={msg} />
+                ))
+              )}
               <div ref={messagesEndRef} />
             </>
           )}

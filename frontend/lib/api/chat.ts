@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { api } from './fetcher';
+import { ChatSuggestion } from '../../types/chat';
+
 
 export interface ChatMessage {
   id: string;
@@ -36,5 +38,26 @@ export const chatApi = {
    */
   async getMessages(planId: string): Promise<ChatMessage[]> {
     return api.get<ChatMessage[]>(`/api/chat/plans/${planId}/messages`);
+  },
+
+  /**
+   * Get proactive suggestions
+   */
+  async getSuggestions(planId: string, refresh = false): Promise<ChatSuggestion[]> {
+    return api.get<ChatSuggestion[]>(`/api/chat/plans/${planId}/suggestions?refresh=${refresh}`);
+  },
+
+  /**
+   * Dismiss a suggestion
+   */
+  async dismissSuggestion(suggestionId: string): Promise<void> {
+    return api.post(`/api/chat/suggestions/${suggestionId}/dismiss`, {});
+  },
+
+  /**
+   * Act on a suggestion
+   */
+  async actOnSuggestion(suggestionId: string): Promise<void> {
+    return api.post(`/api/chat/suggestions/${suggestionId}/act`, {});
   },
 };
