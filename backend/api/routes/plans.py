@@ -137,7 +137,7 @@ async def generate_plan(
         plan = plan_result.data[0]
         plan_id = plan["id"]
 
-        # Insert tasks
+        # Insert tasks with AI intelligence metadata
         tasks_data = []
         for task in ai_response["tasks"]:
             tasks_data.append(
@@ -147,6 +147,13 @@ async def generate_plan(
                     "description": task.get("description", ""),
                     "status": "pending",
                     "order": task.get("order", 0),
+                    # AI Intelligence Metadata
+                    "estimated_time_hours": task.get("estimated_time_hours"),
+                    "difficulty": task.get("difficulty"),
+                    "estimated_cost_usd": task.get("estimated_cost_usd"),
+                    "tools_needed": task.get("tools_needed", []),
+                    "prerequisites": task.get("prerequisites", []),
+                    "tags": task.get("tags", []),
                 }
             )
 

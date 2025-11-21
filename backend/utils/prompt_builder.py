@@ -71,7 +71,7 @@ def determine_plan_type_fallback(title: str, description: str) -> str:
 
 
 def build_plan_prompt(title: str, description: str, timeline: str = None, plan_type: str = None) -> str:
-    """Build the optimized main prompt for plan generation."""
+    """Build the optimized main prompt for plan generation with AI intelligence metadata."""
     
     if plan_type is None:
         plan_type = "default"
@@ -81,7 +81,7 @@ def build_plan_prompt(title: str, description: str, timeline: str = None, plan_t
     
     timeline_text = f"Timeline: {timeline}" if timeline else "Timeline: Not specified"
     
-    prompt = f"""Create a detailed, actionable plan for:
+    prompt = f"""Create a detailed, actionable plan with intelligent metadata for:
 
 **Title**: {title}
 **Description**: {description}
@@ -89,36 +89,54 @@ def build_plan_prompt(title: str, description: str, timeline: str = None, plan_t
 
 Generate 8-12 tasks organized into these categories: {categories_list}
 
-For each task:
+For each task, provide:
+
 1. **Title format**: "[Category Emoji] Category: Specific task name"
    Example: "📋 Planning: Research and compare flight options"
 
 2. **Description** (2-4 sentences):
    - What needs to be done (specific actions)
-   - Key steps or sub-tasks (use bullet points)
+   - Key steps or sub-tasks
    - Important details: costs, tools, timeframes, specific recommendations
    - Pro tip or common pitfall to avoid
 
-3. **Be specific**:
+3. **Intelligence Metadata** (NEW - REQUIRED):
+   - **estimated_time_hours**: Realistic time estimate in hours (as decimal, e.g., 2.5 for 2.5 hours)
+   - **difficulty**: Rate 1-5 (1=very easy, 2=easy, 3=medium, 4=hard, 5=very hard)
+   - **estimated_cost_usd**: Estimated cost in USD (0 if no cost, null if unknown)
+   - **tools_needed**: Array of specific tools/platforms/software required (e.g., ["Google Flights", "Credit card"])
+   - **prerequisites**: Array of task order numbers that should be completed first (e.g., [1, 2] means tasks 1 and 2 should be done first)
+   - **tags**: Array of relevant tags (e.g., ["urgent", "requires_payment", "online", "research"])
+
+4. **Be specific**:
    - Name actual tools/platforms/services (not generic "use a website")
    - Include price ranges when relevant (e.g., "$50-100" or "₹5,000")
    - Mention specific brands/providers when helpful
-   - Give concrete examples
+   - Make time estimates realistic (consider research, decision-making, execution, and verification time)
 
-4. **Keep it actionable**: Someone should know exactly what to do after reading the task.
-
-EXAMPLE - Good Task:
+EXAMPLE - Enhanced Task:
 {{
     "title": "📋 Planning: Research and compare flight options",
     "description": "Use Google Flights or Skyscanner to compare prices from your departure city. Filter for your preferred dates and set price alerts if costs are above budget. Consider booking 6-8 weeks in advance for best prices (typically $400-700 for domestic, $800-1500 for international). Pro tip: Check prices on Tuesday/Wednesday for potential 10-20% savings.",
-    "order": 1
+    "order": 1,
+    "estimated_time_hours": 1.5,
+    "difficulty": 2,
+    "estimated_cost_usd": 0,
+    "tools_needed": ["Google Flights", "Skyscanner", "Email for alerts"],
+    "prerequisites": [],
+    "tags": ["research", "online", "price_comparison"]
 }}
 
-EXAMPLE - Bad Task (avoid):
 {{
-    "title": "Book flights",
-    "description": "Find and book flights for your trip using travel websites.",
-    "order": 1
+    "title": "🎒 Preparation: Book flight tickets",
+    "description": "Based on your research, book the best flight option. Have your passport details and payment method ready. Screenshot confirmation and save booking reference. Most airlines allow free cancellation within 24 hours if you change your mind.",
+    "order": 4,
+    "estimated_time_hours": 0.75,
+    "difficulty": 2,
+    "estimated_cost_usd": 600,
+    "tools_needed": ["Credit card", "Passport", "Airline website"],
+    "prerequisites": [1],
+    "tags": ["requires_payment", "online", "booking", "time_sensitive"]
 }}
 
 Also include 6-10 relevant resources with:
@@ -126,11 +144,16 @@ Also include 6-10 relevant resources with:
 - Clear titles (not generic like "Travel Website")
 - Mix of types: booking platforms, guides, tools, communities
 
-CRITICAL:
+CRITICAL RULES:
 - Distribute tasks across all categories (aim for 2-3 tasks per category)
 - Order tasks logically (planning → preparation → execution → review)
+- Make time estimates realistic (account for research, thinking, doing, verifying)
+- Difficulty should reflect skill level needed (1=anyone can do, 5=expert level)
+- Prerequisites should reference task order numbers (1-based indexing)
+- Cost should be 0 for free tasks, null if truly unknown, or actual USD estimate
+- Tools should list specific brands/platforms, not generic descriptions
+- Tags should be lowercase with underscores (snake_case)
 - No placeholder text or "TBD"
-- Be practical and realistic
 - MUST respond with valid JSON only - no markdown, no code blocks, no extra text
 
 JSON SCHEMA (respond with ONLY this structure):
@@ -139,7 +162,13 @@ JSON SCHEMA (respond with ONLY this structure):
         {{
             "title": "string with category prefix",
             "description": "string (2-4 sentences)",
-            "order": number
+            "order": number (1-indexed),
+            "estimated_time_hours": number (decimal),
+            "difficulty": number (1-5),
+            "estimated_cost_usd": number or null,
+            "tools_needed": ["string", "string"],
+            "prerequisites": [number, number] (task order numbers),
+            "tags": ["string", "string"]
         }}
     ],
     "resources": [

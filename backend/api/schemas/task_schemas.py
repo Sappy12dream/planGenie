@@ -20,6 +20,13 @@ class TaskUpdateRequest(BaseModel):
     status: Optional[TaskStatus] = None
     due_date: Optional[date] = None
     order: Optional[int] = None
+    # AI Intelligence Metadata (optional for updates)
+    estimated_time_hours: Optional[float] = None
+    difficulty: Optional[int] = Field(None, ge=1, le=5)
+    estimated_cost_usd: Optional[float] = None
+    tools_needed: Optional[list[str]] = None
+    prerequisites: Optional[list[int]] = None
+    tags: Optional[list[str]] = None
 
 class TaskReorderRequest(BaseModel):
     task_id: str

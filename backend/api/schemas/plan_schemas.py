@@ -36,6 +36,15 @@ class TaskResponse(BaseModel):
     due_date: Optional[date]
     order: int
     created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    # AI Intelligence Metadata
+    estimated_time_hours: Optional[float] = None
+    difficulty: Optional[int] = Field(None, ge=1, le=5)
+    estimated_cost_usd: Optional[float] = None
+    tools_needed: Optional[List[str]] = []
+    prerequisites: Optional[List[int]] = []
+    tags: Optional[List[str]] = []
 
     class Config:
         from_attributes = True
@@ -61,6 +70,13 @@ class PlanResponse(BaseModel):
     resources: List[ResourceResponse] = []
     created_at: datetime
     updated_at: datetime
+    
+    # AI Intelligence Metadata
+    plan_type: Optional[str] = "default"
+    total_estimated_hours: Optional[float] = None
+    total_estimated_cost_usd: Optional[float] = None
+    health_score: Optional[int] = Field(None, ge=0, le=100)
+    last_analyzed_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

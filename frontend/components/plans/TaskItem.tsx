@@ -7,7 +7,7 @@ import { tasksApi, TaskUpdateRequest } from '@/lib/api/tasks';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
+import { Trash2, GripVertical, ChevronDown, ChevronRight, Clock, Target, DollarSign, Wrench, Tag, AlertCircle } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +24,7 @@ import { toast } from 'sonner';
 import { TaskFileUpload } from './TaskFileUpload';
 import { SubtasksList } from './SubtasksList';
 import { TaskDescription } from './TaskDescription';
+import { formatTimeEstimate, formatCost, getDifficultyLabel, getDifficultyColor } from '@/types/intelligence-helpers';
 
 interface TaskItemProps {
   task: Task;
@@ -205,9 +206,8 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
 
   return (
     <div
-      className={`group flex items-start gap-3 rounded-lg border bg-white dark:bg-slate-900 dark:border-slate-800 p-4 transition-shadow ${
-        isDragging ? 'shadow-lg dark:shadow-slate-900/50' : 'hover:shadow-sm dark:hover:shadow-slate-900/50'
-      }`}
+      className={`group flex items-start gap-3 rounded-lg border bg-white dark:bg-slate-900 dark:border-slate-800 p-4 transition-shadow ${isDragging ? 'shadow-lg dark:shadow-slate-900/50' : 'hover:shadow-sm dark:hover:shadow-slate-900/50'
+        }`}
     >
       {/* Drag Handle */}
       <div className="mt-1 shrink-0 cursor-grab text-slate-300 dark:text-slate-700 transition-colors hover:text-slate-500 dark:hover:text-slate-500 active:cursor-grabbing">
@@ -269,11 +269,10 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
                     }
                   }
                 }}
-                className={`flex-1 cursor-pointer font-medium text-slate-900 dark:text-slate-100 transition-all duration-200 hover:text-blue-600 dark:hover:text-blue-400 ${
-                  task.status === 'completed'
-                    ? 'text-slate-500 dark:text-slate-500 line-through'
-                    : ''
-                }`}
+                className={`flex-1 cursor-pointer font-medium text-slate-900 dark:text-slate-100 transition-all duration-200 hover:text-blue-600 dark:hover:text-blue-400 ${task.status === 'completed'
+                  ? 'text-slate-500 dark:text-slate-500 line-through'
+                  : ''
+                  }`}
               >
                 {task.title}
               </h3>
@@ -327,6 +326,102 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
           <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
             Due: {new Date(task.due_date).toLocaleDateString()}
           </p>
+        )}
+
+        {/* AI Intelligence Metadata */}
+        {(task.estimated_time_hours || task.difficulty || task.estimated_cost_usd !== undefined ||
+          (task.tools_needed && task.tools_needed.length > 0) ||
+          (task.prerequisites && task.prerequisites.length > 0) ||
+          (task.tags && task.tags.length > 0)) && (
+            <div className="mb-3 flex flex-wrap gap-2 text-xs">
+              {/* Time Estimate */}
+              {task.estimated_time_hours && (
+                <div className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/30 px-2 py-1 text-blue-700 dark:text-blue-300">
+                  <Clock className="h-3 w-3" />
+                  <span>{formatTimeEstimate(task.estimated_time_hours)}</span>
+                </div>
+              )}
+
+              {/* Difficulty */}
+              {task.difficulty && (
+                <div className={`inline-flex items-center gap-1 rounded-full px-2 py-1 bg-${getDifficultyColor(task.difficulty)}-50 dark:bg-${getDifficultyColor(task.difficulty)}-950/30 text-${getDifficultyColor(task.difficulty)}-700 dark:text-${getDifficultyColor(task.difficulty)}-300`}>
+                  <Target className="h-3 w-3" />
+                  <span>{getDifficultyLabel(task.difficulty)}</span>
+                </div>
+              )}
+
+              {/* Cost */}
+              {task.estimated_cost_usd !== undefined && task.estimated_cost_usd !== null && (
+                <div className="inline-flex items-center gap-1 rounded-full bg-green-50 dark:bg-green-950/30 px-2 py-1 text-green-700 dark:text-green-300">
+                  <DollarSign className="h-3 w-3" />
+                  <span>{formatCost(task.estimated_cost_usd)}</span>
+                </div>
+              )}
+
+              {/* Tools */}
+              {task.tools_needed && task.tools_needed.length > 0 && (
+                <div className="inline-flex items-center gap-1 rounded-full bg-purple-50 dark:bg-purple-950/30 px-2 py-1 text-purple-700 dark:text-purple-300">
+                  <Wrench className="h-3 w-3" />
+                  <span>{task.tools_needed.length} tool{task.tools_needed.length > 1 ? 's' : ''}</span>
+                </div>
+              )}
+
+              {/* Prerequisites */}
+              {task.prerequisites && task.prerequisites.length > 0 && (
+                <div className="inline-flex items-center gap-1 rounded-full bg-orange-50 dark:bg-orange-950/30 px-2 py-1 text-orange-700 dark:text-orange-300">
+                  <AlertCircle className="h-3 w-3" />
+                  <span>{task.prerequisites.length} prerequisite{task.prerequisites.length > 1 ? 's' : ''}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+        {/* Tags */}
+        {task.tags && task.tags.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1">
+            {task.tags.map((tag, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center gap-1 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs text-slate-600 dark:text-slate-400"
+              >
+                <Tag className="h-3 w-3" />
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Detailed Intelligence - Show when expanded */}
+        {isExpanded && (task.tools_needed?.length || task.prerequisites?.length) && (
+          <div className="mb-3 space-y-2 rounded-lg bg-slate-50 dark:bg-slate-800 p-3 text-sm">
+            {/* Tools List */}
+            {task.tools_needed && task.tools_needed.length > 0 && (
+              <div>
+                <h4 className="mb-1 flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
+                  <Wrench className="h-4 w-4" />
+                  Tools Needed:
+                </h4>
+                <ul className="ml-5 list-disc space-y-0.5 text-slate-600 dark:text-slate-400">
+                  {task.tools_needed.map((tool, index) => (
+                    <li key={index}>{tool}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Prerequisites List */}
+            {task.prerequisites && task.prerequisites.length > 0 && (
+              <div>
+                <h4 className="mb-1 flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
+                  <AlertCircle className="h-4 w-4" />
+                  Complete These Tasks First:
+                </h4>
+                <p className="ml-5 text-slate-600 dark:text-slate-400">
+                  Tasks {task.prerequisites.join(', ')}
+                </p>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Subtasks Section - Only show when expanded */}

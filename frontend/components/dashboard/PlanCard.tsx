@@ -36,8 +36,11 @@ import {
   Clock,
   Archive,
   Trash2,
+  DollarSign,
+  Heart,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatTimeEstimate, formatCost, getHealthScoreColor, getHealthScoreLabel } from '@/types/intelligence-helpers';
 
 interface PlanCardProps {
   plan: Plan;
@@ -204,6 +207,41 @@ export function PlanCard({ plan }: PlanCardProps) {
               </p>
             </div>
           </div>
+
+          {/* AI Intelligence Metadata */}
+          {(plan.total_estimated_hours || plan.total_estimated_cost_usd !== undefined || plan.health_score) && (
+            <div className="mt-4 space-y-2 border-t dark:border-slate-800 pt-4">
+              {plan.total_estimated_hours && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-slate-600 dark:text-slate-400">Total Time:</span>
+                  <span className="font-medium text-slate-900 dark:text-slate-100">
+                    {formatTimeEstimate(plan.total_estimated_hours)}
+                  </span>
+                </div>
+              )}
+
+              {plan.total_estimated_cost_usd !== undefined && plan.total_estimated_cost_usd !== null && (
+                <div className="flex items-center gap-2 text-sm">
+                  <DollarSign className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <span className="text-slate-600 dark:text-slate-400">Total Cost:</span>
+                  <span className="font-medium text-slate-900 dark:text-slate-100">
+                    {formatCost(plan.total_estimated_cost_usd)}
+                  </span>
+                </div>
+              )}
+
+              {plan.health_score && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Heart className="h-4 w-4 text-red-500 dark:text-red-400" />
+                  <span className="text-slate-600 dark:text-slate-400">Health:</span>
+                  <span className="font-medium text-slate-900 dark:text-slate-100">
+                    {getHealthScoreLabel(plan.health_score)} ({plan.health_score}/100)
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
 
         <CardFooter className="border-t pt-3 dark:border-slate-800">

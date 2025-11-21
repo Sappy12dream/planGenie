@@ -1,6 +1,7 @@
 export type PlanStatus = 'draft' | 'active' | 'completed' | 'archived';
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';
 export type ResourceType = 'link' | 'document' | 'video' | 'other';
+export type TaskDifficulty = 1 | 2 | 3 | 4 | 5;
 
 export interface Task {
   id: string;
@@ -11,6 +12,15 @@ export interface Task {
   due_date: string | null;
   order: number;
   created_at: string;
+  updated_at?: string;
+
+  // AI Intelligence Metadata
+  estimated_time_hours?: number | null;
+  difficulty?: TaskDifficulty | null;
+  estimated_cost_usd?: number | null;
+  tools_needed?: string[];
+  prerequisites?: number[];
+  tags?: string[];
 }
 
 export interface Resource {
@@ -32,6 +42,13 @@ export interface Plan {
   resources: Resource[];
   created_at: string;
   updated_at: string;
+
+  // AI Intelligence Metadata
+  plan_type?: string;
+  total_estimated_hours?: number | null;
+  total_estimated_cost_usd?: number | null;
+  health_score?: number | null;
+  last_analyzed_at?: string | null;
 }
 
 export interface PlanGenerateRequest {

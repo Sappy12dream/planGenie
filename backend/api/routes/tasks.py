@@ -127,6 +127,20 @@ async def update_task(
         if request.order is not None:
             update_data["order"] = request.order
         
+        # AI Intelligence Metadata fields
+        if request.estimated_time_hours is not None:
+            update_data["estimated_time_hours"] = request.estimated_time_hours
+        if request.difficulty is not None:
+            update_data["difficulty"] = request.difficulty
+        if request.estimated_cost_usd is not None:
+            update_data["estimated_cost_usd"] = request.estimated_cost_usd
+        if request.tools_needed is not None:
+            update_data["tools_needed"] = request.tools_needed
+        if request.prerequisites is not None:
+            update_data["prerequisites"] = request.prerequisites
+        if request.tags is not None:
+            update_data["tags"] = request.tags
+        
         if not update_data:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
