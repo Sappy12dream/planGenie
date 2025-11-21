@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { plansApi } from '@/lib/api/plans';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -28,6 +28,13 @@ export default function DashboardPage() {
     undefined
   );
 
+  // Fetch stats (always shows total counts regardless of filter)
+  const { data: stats } = useQuery({
+    queryKey: ['plan-stats'],
+    queryFn: () => plansApi.getStats(),
+    retry: 3,
+  });
+
   const {
     data,
     isLoading,
@@ -46,10 +53,6 @@ export default function DashboardPage() {
   });
 
   const plans = data?.pages.flatMap((page: any[]) => page) || [];
-
-  const activePlans = plans.filter((p) => p.status === 'active');
-  const completedPlans = plans.filter((p) => p.status === 'completed');
-  const archivedPlans = plans.filter((p) => p.status === 'archived');
 
   const initials = user?.email
     ? user.email.split('@')[0].substring(0, 2).toUpperCase()
@@ -142,10 +145,10 @@ export default function DashboardPage() {
                 Active
               </p>
               <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {isLoading ? (
+                {!stats ? (
                   <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
                 ) : (
-                  activePlans.length
+                  stats.active
                 )}
               </p>
             </div>
@@ -154,10 +157,10 @@ export default function DashboardPage() {
                 Completed
               </p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {isLoading ? (
+                {!stats ? (
                   <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
                 ) : (
-                  completedPlans.length
+                  stats.completed
                 )}
               </p>
             </div>
@@ -166,10 +169,10 @@ export default function DashboardPage() {
                 Archived
               </p>
               <p className="text-2xl font-bold text-slate-600 dark:text-slate-400">
-                {isLoading ? (
+                {!stats ? (
                   <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
                 ) : (
-                  archivedPlans.length
+                  stats.archived
                 )}
               </p>
             </div>

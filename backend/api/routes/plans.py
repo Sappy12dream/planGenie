@@ -10,12 +10,56 @@ from api.schemas.plan_schemas import (
     PlanResponse,
     TaskResponse,
     ResourceResponse,
+    PlanStatsResponse,
 )
 from services.supabase_service import get_supabase_client
 from services.plan_generator import generate_plan_with_ai
 from services.auth_service import get_user_from_token
 
 router = APIRouter(prefix="/api/plans", tags=["plans"])
+
+
+@router.get("/stats", response_model=PlanStatsResponse)
+async def get_plan_stats(
+    supabase: Client = Depends(get_supabase_client),
+    user_id: str = Depends(get_user_from_token),
+):
+    """
+    Get plan statistics (counts by status) for the current user
+    This is a lightweight endpoint that returns only counts without fetching full plan data
+    """
+    try:
+        # Get all plans for the user (just id and status fields for efficiency)
+        result = (
+            supabase.table("plans")
+            .select("id, status")
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        plans = result.data
+
+        # Count by status
+        active_count = sum(1 for p in plans if p["status"] == "active")
+        completed_count = sum(1 for p in plans if p["status"] == "completed")
+        archived_count = sum(1 for p in plans if p["status"] == "archived")
+        total_count = len(plans)
+
+        return PlanStatsResponse(
+            active=active_count,
+            completed=completed_count,
+            archived=archived_count,
+            total=total_count,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error fetching plan stats: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch plan stats: {str(e)}",
+        )
 
 
 @router.get("/", response_model=List[PlanResponse])

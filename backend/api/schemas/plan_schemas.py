@@ -84,3 +84,9 @@ class PlanResponse(BaseModel):
 class PlanGenerateResponse(BaseModel):
     plan: PlanResponse
     message: str = "Plan generated successfully"
+
+class PlanStatsResponse(BaseModel):
+    active: int
+    completed: int
+    archived: int
+    total: int

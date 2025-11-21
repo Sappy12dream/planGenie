@@ -41,6 +41,18 @@ export const plansApi = {
   },
 
   /**
+   * Get plan statistics (counts by status)
+   */
+  async getStats(): Promise<{
+    active: number;
+    completed: number;
+    archived: number;
+    total: number;
+  }> {
+    return api.get('/api/plans/stats');
+  },
+
+  /**
    * Delete a plan
    */
   async deletePlan(planId: string): Promise<void> {
