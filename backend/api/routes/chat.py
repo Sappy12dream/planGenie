@@ -14,6 +14,7 @@ from services.chat_suggestion_service import (
     accept_suggestion
 )
 from api.schemas.chat_suggestion_schemas import ChatSuggestionResponse
+from utils.rate_limiter import suggestion_rate_limiter
 
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
@@ -51,10 +52,40 @@ def verify_plan_ownership(supabase: Client, plan_id: str, user_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error verifying plan ownership: {e}")
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error verifying plan ownership: {str(e)}"
+            detail="Failed to verify plan ownership"
+        )
+
+def verify_suggestion_ownership(supabase: Client, suggestion_id: str, user_id: str) -> str:
+    """Verify that the suggestion belongs to a plan owned by the user. Returns plan_id."""
+    try:
+        # Get suggestion with plan info
+        suggestion_result = supabase.table("chat_suggestions")\
+            .select("plan_id")\
+            .eq("id", suggestion_id)\
+            .execute()
+        
+        if not suggestion_result.data or len(suggestion_result.data) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Suggestion not found"
+            )
+        
+        plan_id = suggestion_result.data[0]["plan_id"]
+        
+        # Verify plan ownership
+        verify_plan_ownership(supabase, plan_id, user_id)
+        
+        return plan_id
+    except HTTPException:
+        raise
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to verify suggestion ownership"
         )
 
 @router.post("/plans/{plan_id}/messages", response_model=ChatResponse)
@@ -106,10 +137,10 @@ async def send_message(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error in chat: {e}")
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to process message: {str(e)}"
+            detail="Failed to process message"
         )
 
 @router.get("/plans/{plan_id}/messages", response_model=List[ChatMessage])
@@ -129,10 +160,10 @@ async def get_messages(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error fetching messages: {e}")
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch messages: {str(e)}"
+            detail="Failed to fetch messages"
         )
 
 @router.get("/plans/{plan_id}/suggestions", response_model=List[ChatSuggestionResponse])
@@ -150,6 +181,14 @@ async def get_suggestions(
         
         # If no suggestions or forced refresh, generate new ones
         if not suggestions or refresh:
+            # Check rate limit
+            if not suggestion_rate_limiter.is_allowed(user_id, plan_id):
+                remaining = suggestion_rate_limiter.get_remaining(user_id, plan_id)
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail=f"Rate limit exceeded. Try again later. Remaining: {remaining}"
+                )
+            
             # Fetch plan and tasks
             plan_result = supabase.table("plans").select("*").eq("id", plan_id).execute()
             tasks_result = supabase.table("tasks").select("*").eq("plan_id", plan_id).execute()
@@ -169,10 +208,9 @@ async def get_suggestions(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error getting suggestions: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get suggestions: {str(e)}"
+            detail="Failed to get suggestions"
         )
 
 @router.post("/suggestions/{suggestion_id}/dismiss")
@@ -183,12 +221,17 @@ async def dismiss_suggestion_endpoint(
 ):
     """Dismiss a suggestion"""
     try:
-        # Verify ownership (via join or separate query - keeping it simple for now)
-        # In a real app, we should verify the suggestion belongs to a plan owned by the user
+        # Verify ownership
+        verify_suggestion_ownership(supabase, suggestion_id, user_id)
+        
         dismiss_suggestion(suggestion_id, supabase)
+
         return {"status": "success"}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+        raise HTTPException(status_code=500, detail="Failed to dismiss suggestion")
 
 @router.post("/suggestions/{suggestion_id}/act")
 async def act_on_suggestion_endpoint(
@@ -196,9 +239,16 @@ async def act_on_suggestion_endpoint(
     supabase: Client = Depends(get_supabase_client),
     user_id: str = Depends(get_user_from_token)
 ):
-    """Mark suggestion as accepted (Action logic handled by frontend or separate specific endpoints)"""
+    """Accept and execute suggestion action"""
     try:
+        # Verify ownership
+        verify_suggestion_ownership(supabase, suggestion_id, user_id)
+        
         accept_suggestion(suggestion_id, supabase)
+
         return {"status": "success"}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+        raise HTTPException(status_code=500, detail="Failed to execute suggestion action")
