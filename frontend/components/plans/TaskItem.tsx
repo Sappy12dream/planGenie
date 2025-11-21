@@ -235,7 +235,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
             {task.description && !isEditingTitle && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-0.5 shrink-0 text-slate-400 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-400"
+                className="cursor-pointer mt-0.5 shrink-0 text-slate-400 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-400"
               >
                 {isExpanded ? (
                   <ChevronDown className="h-4 w-4" />
@@ -316,7 +316,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
         {!task.description && !isEditingTitle && !isEditingDescription && (
           <button
             onClick={() => setIsEditingDescription(true)}
-            className="mb-2 text-sm text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
+            className="cursor-pointer mb-2 text-sm text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
           >
             + Add description
           </button>

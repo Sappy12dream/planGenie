@@ -1,16 +1,21 @@
 import React from 'react';
 import { ChatSuggestion } from '../../types/chat';
+import { Loader2 } from 'lucide-react';
 
 interface ChatSuggestionCardProps {
     suggestion: ChatSuggestion;
     onAccept: (id: string) => void;
     onDismiss: (id: string) => void;
+    isDismissing?: boolean;
+    isActing?: boolean;
 }
 
 export const ChatSuggestionCard: React.FC<ChatSuggestionCardProps> = ({
     suggestion,
     onAccept,
     onDismiss,
+    isDismissing = false,
+    isActing = false,
 }) => {
     const getIcon = () => {
         switch (suggestion.suggestion_type) {
@@ -46,9 +51,10 @@ export const ChatSuggestionCard: React.FC<ChatSuggestionCardProps> = ({
                 </div>
                 <button
                     onClick={() => onDismiss(suggestion.id)}
-                    className="text-gray-400 hover:text-gray-600"
+                    disabled={isDismissing || isActing}
+                    className="cursor-pointer text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    ✕
+                    {isDismissing ? <Loader2 className="h-4 w-4 animate-spin" /> : '✕'}
                 </button>
             </div>
 
@@ -56,15 +62,31 @@ export const ChatSuggestionCard: React.FC<ChatSuggestionCardProps> = ({
                 <div className="mt-4 flex justify-end gap-2">
                     <button
                         onClick={() => onDismiss(suggestion.id)}
-                        className="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded"
+                        disabled={isDismissing || isActing}
+                        className="cursor-pointer px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Dismiss
+                        {isDismissing ? (
+                            <span className="flex items-center gap-1">
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                Dismissing...
+                            </span>
+                        ) : (
+                            'Dismiss'
+                        )}
                     </button>
                     <button
                         onClick={() => onAccept(suggestion.id)}
-                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm"
+                        disabled={isDismissing || isActing}
+                        className="cursor-pointer px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {suggestion.action_button_text || 'Do it'}
+                        {isActing ? (
+                            <span className="flex items-center gap-1">
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                Processing...
+                            </span>
+                        ) : (
+                            suggestion.action_button_text || 'Do it'
+                        )}
                     </button>
                 </div>
             )}

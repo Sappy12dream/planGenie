@@ -20,6 +20,8 @@ interface ChatSidebarProps {
 
 export function ChatSidebar({ planId, isOpen, onClose }: ChatSidebarProps) {
   const [message, setMessage] = useState('');
+  const [dismissingId, setDismissingId] = useState<string | null>(null);
+  const [actingId, setActingId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
@@ -58,19 +60,35 @@ export function ChatSidebar({ planId, isOpen, onClose }: ChatSidebarProps) {
   // Suggestion mutations
   const dismissMutation = useMutation({
     mutationFn: (id: string) => chatApi.dismissSuggestion(id),
+    onMutate: (id) => {
+      setDismissingId(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chat-suggestions', planId] });
+      setDismissingId(null);
+    },
+    onError: () => {
+      setDismissingId(null);
+      toast.error('Failed to dismiss suggestion');
     },
   });
 
   const actMutation = useMutation({
     mutationFn: (id: string) => chatApi.actOnSuggestion(id),
+    onMutate: (id) => {
+      setActingId(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chat-suggestions', planId] });
       toast.success('Suggestion accepted!');
       // Optionally refresh tasks/plan if the action modified them
       queryClient.invalidateQueries({ queryKey: ['plan', planId] });
       queryClient.invalidateQueries({ queryKey: ['tasks', planId] });
+      setActingId(null);
+    },
+    onError: () => {
+      setActingId(null);
+      toast.error('Failed to accept suggestion');
     },
   });
 
@@ -164,6 +182,8 @@ export function ChatSidebar({ planId, isOpen, onClose }: ChatSidebarProps) {
                       suggestion={suggestion}
                       onDismiss={(id) => dismissMutation.mutate(id)}
                       onAccept={(id) => actMutation.mutate(id)}
+                      isDismissing={dismissingId === suggestion.id}
+                      isActing={actingId === suggestion.id}
                     />
                   ))}
                   <div className="relative flex items-center py-2">
