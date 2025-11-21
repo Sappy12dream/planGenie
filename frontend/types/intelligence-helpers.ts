@@ -39,38 +39,45 @@ export function getDifficultyColor(difficulty: TaskDifficulty | null | undefined
 /**
  * Format time estimate for display
  */
-export function formatTimeEstimate(hours: number | null | undefined): string {
+export function formatTimeEstimate(hours: number | string | null | undefined): string {
     if (!hours) return 'Not estimated';
 
-    if (hours < 1) {
-        return `${Math.round(hours * 60)} min`;
+    // Parse string to number if needed (database returns DECIMAL as string)
+    const numHours = typeof hours === 'string' ? parseFloat(hours) : hours;
+
+    if (numHours < 1) {
+        return `${Math.round(numHours * 60)} min`;
     }
 
-    if (hours === 1) {
+    if (numHours === 1) {
         return '1 hour';
     }
 
     // Show decimal for values like 1.5, 2.5
-    if (hours % 1 !== 0) {
-        return `${hours.toFixed(1)} hours`;
+    if (numHours % 1 !== 0) {
+        return `${numHours.toFixed(1)} hours`;
     }
 
-    return `${hours} hours`;
+    return `${numHours} hours`;
 }
 
 /**
  * Format cost for display
  */
-export function formatCost(cost: number | null | undefined): string {
+export function formatCost(cost: number | string | null | undefined): string {
     if (cost === null || cost === undefined) return 'Cost unknown';
-    if (cost === 0) return 'Free';
+
+    // Parse string to number if needed
+    const numCost = typeof cost === 'string' ? parseFloat(cost) : cost;
+
+    if (numCost === 0) return 'Free';
 
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: 0,
         maximumFractionDigits: 2,
-    }).format(cost);
+    }).format(numCost);
 }
 
 /**

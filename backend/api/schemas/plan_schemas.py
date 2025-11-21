@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import date, datetime
 from enum import Enum
 
@@ -73,8 +73,8 @@ class PlanResponse(BaseModel):
     
     # AI Intelligence Metadata
     plan_type: Optional[str] = "default"
-    total_estimated_hours: Optional[float] = None
-    total_estimated_cost_usd: Optional[float] = None
+    total_estimated_hours: Optional[Union[float, str]] = None
+    total_estimated_cost_usd: Optional[Union[float, str]] = None
     health_score: Optional[int] = Field(None, ge=0, le=100)
     last_analyzed_at: Optional[datetime] = None
 

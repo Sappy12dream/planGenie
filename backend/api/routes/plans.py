@@ -76,6 +76,12 @@ async def get_all_plans(
                 ],
                 created_at=plan["created_at"],
                 updated_at=plan["updated_at"],
+                # AI Intelligence Metadata (if present)
+                plan_type=plan.get("plan_type"),
+                total_estimated_hours=plan.get("total_estimated_hours"),
+                total_estimated_cost_usd=plan.get("total_estimated_cost_usd"),
+                health_score=plan.get("health_score"),
+                last_analyzed_at=plan.get("last_analyzed_at"),
             )
             plans_with_details.append(plan_response)
 
@@ -157,23 +163,29 @@ async def generate_plan(
                 }
             )
 
+        # Compute AI intelligence aggregates for the plan
+        total_estimated_hours = sum(task.get('estimated_time_hours') or 0 for task in tasks_data)
+        total_estimated_cost_usd = sum(task.get('estimated_cost_usd') or 0 for task in tasks_data)
+        # Simple health score calculation: average difficulty (scale 1-5) -> map to 0-100
+        difficulties = [task.get('difficulty') for task in tasks_data if task.get('difficulty')]
+        if difficulties:
+            avg_difficulty = sum(difficulties) / len(difficulties)
+            health_score = int((6 - avg_difficulty) * 20)  # 5 -> 20, 1 -> 100
+        else:
+            health_score = None
+        # Update plan with computed metadata
+        supabase.table("plans").update({
+            "total_estimated_hours": total_estimated_hours,
+            "total_estimated_cost_usd": total_estimated_cost_usd,
+            "health_score": health_score,
+            "plan_type": ai_response.get("plan_type", "default"),
+        }).eq("id", plan_id).execute()
+
+        # Insert tasks and resources
         tasks_result = supabase.table("tasks").insert(tasks_data).execute()
-
-        # Insert resources
-        resources_data = []
-        for resource in ai_response["resources"]:
-            resources_data.append(
-                {
-                    "plan_id": plan_id,
-                    "title": resource["title"],
-                    "url": resource["url"],
-                    "type": resource.get("type", "link"),
-                }
-            )
-
         resources_result = supabase.table("resources").insert(resources_data).execute()
 
-        # Build response
+        # Build response with AI intelligence metadata
         response = PlanGenerateResponse(
             plan=PlanResponse(
                 id=plan["id"],
@@ -181,12 +193,15 @@ async def generate_plan(
                 title=plan["title"],
                 description=plan["description"],
                 status=plan["status"],
-                tasks=[TaskResponse(**task) for task in tasks_result.data],
-                resources=[
-                    ResourceResponse(**resource) for resource in resources_result.data
-                ],
+                tasks=[TaskResponse(**t) for t in tasks_result.data],
+                resources=[ResourceResponse(**r) for r in resources_result.data],
                 created_at=plan["created_at"],
                 updated_at=plan["updated_at"],
+                plan_type=ai_response.get("plan_type", "default"),
+                total_estimated_hours=total_estimated_hours,
+                total_estimated_cost_usd=total_estimated_cost_usd,
+                health_score=health_score,
+                last_analyzed_at=None,
             )
         )
 
@@ -242,22 +257,24 @@ async def get_plan(
             supabase.table("resources").select("*").eq("plan_id", plan_id).execute()
         )
 
-        # Build response
-        response = PlanResponse(
+        # Build response with AI metadata
+        plan_response = PlanResponse(
             id=plan["id"],
             user_id=plan["user_id"],
             title=plan["title"],
             description=plan["description"],
             status=plan["status"],
-            tasks=[TaskResponse(**task) for task in tasks_result.data],
-            resources=[
-                ResourceResponse(**resource) for resource in resources_result.data
-            ],
+            tasks=[TaskResponse(**t) for t in tasks_result.data],
+            resources=[ResourceResponse(**r) for r in resources_result.data],
             created_at=plan["created_at"],
             updated_at=plan["updated_at"],
+            plan_type=plan.get("plan_type"),
+            total_estimated_hours=plan.get("total_estimated_hours"),
+            total_estimated_cost_usd=plan.get("total_estimated_cost_usd"),
+            health_score=plan.get("health_score"),
+            last_analyzed_at=plan.get("last_analyzed_at"),
         )
-
-        return response
+        return plan_response
 
     except HTTPException:
         raise

@@ -44,9 +44,10 @@ export interface Plan {
   updated_at: string;
 
   // AI Intelligence Metadata
+  // Note: Database returns DECIMAL as string, so we accept both
   plan_type?: string;
-  total_estimated_hours?: number | null;
-  total_estimated_cost_usd?: number | null;
+  total_estimated_hours?: number | string | null;
+  total_estimated_cost_usd?: number | string | null;
   health_score?: number | null;
   last_analyzed_at?: string | null;
 }

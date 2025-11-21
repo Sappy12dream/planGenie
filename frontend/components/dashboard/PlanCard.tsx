@@ -103,7 +103,6 @@ export function PlanCard({ plan }: PlanCardProps) {
       });
     },
   });
-
   return (
     <>
       <Card className="cursor-pointer transition-shadow hover:shadow-lg dark:hover:shadow-slate-900/50">
@@ -209,7 +208,7 @@ export function PlanCard({ plan }: PlanCardProps) {
           </div>
 
           {/* AI Intelligence Metadata */}
-          {(plan.total_estimated_hours || plan.total_estimated_cost_usd !== undefined || plan.health_score) && (
+          {(plan.total_estimated_hours != null || plan.total_estimated_cost_usd != null || plan.health_score != null) && (
             <div className="mt-4 space-y-2 border-t dark:border-slate-800 pt-4">
               {plan.total_estimated_hours && (
                 <div className="flex items-center gap-2 text-sm">
