@@ -16,6 +16,8 @@ import { Label } from '@/components/ui/label';
 import { plansApi } from '@/lib/api/plans';
 import { PlanGenerateRequest } from '@/types/plan';
 
+import { Analytics } from '@/lib/monitoring/analytics';
+
 const formSchema = z.object({
   title: z
     .string()
@@ -33,6 +35,7 @@ type FormData = z.infer<typeof formSchema>;
 export function PlanInputForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [startTime, setStartTime] = useState<number | null>(null);
 
   const {
     register,
@@ -44,7 +47,14 @@ export function PlanInputForm() {
 
   const generateMutation = useMutation({
     mutationFn: (data: PlanGenerateRequest) => plansApi.generatePlan(data),
-    onSuccess: (plan) => {
+    onSuccess: (plan, variables) => {
+      // Track success
+      if (startTime) {
+        const duration = Date.now() - startTime;
+        Analytics.trackPlanGeneration(true, duration, variables.title);
+        Analytics.trackPlanCreated(plan.id, plan.plan_type);
+      }
+
       toast.success('Plan generated successfully!', {
         description: 'Redirecting to your new plan...',
       });
@@ -54,8 +64,15 @@ export function PlanInputForm() {
         router.push(`/plans/${plan.id}`);
       }, 500);
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables) => {
       console.error('Error creating plan:', error);
+
+      // Track failure
+      if (startTime) {
+        const duration = Date.now() - startTime;
+        Analytics.trackPlanGeneration(false, duration, variables.title, error.message);
+      }
+
       setError(error.message);
       toast.error('Failed to generate plan', {
         description: error.message,
@@ -65,6 +82,8 @@ export function PlanInputForm() {
 
   const onSubmit = (data: FormData) => {
     setError(null);
+    setStartTime(Date.now());
+
     toast.loading('Generating your plan with AI...', {
       id: 'generate-plan',
     });

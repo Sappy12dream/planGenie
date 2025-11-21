@@ -26,3 +26,6 @@ httpx==0.27.2
 # Testing (additional)
 pytest-mock==3.14.0
 faker==30.8.2
+
+# Monitoring & Error Tracking
+sentry-sdk[fastapi]==2.18.0

@@ -15,6 +15,7 @@ from api.schemas.plan_schemas import (
 from services.supabase_service import get_supabase_client
 from services.plan_generator import generate_plan_with_ai
 from services.auth_service import get_user_from_token
+from services.monitoring_service import MonitoringService, PerformanceTimer
 
 router = APIRouter(prefix="/api/plans", tags=["plans"])
 
@@ -56,6 +57,7 @@ async def get_plan_stats(
         raise
     except Exception as e:
         print(f"Error fetching plan stats: {e}")
+        MonitoringService.capture_exception(e, {"user_id": user_id, "action": "get_plan_stats"})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch plan stats: {str(e)}",
@@ -135,6 +137,7 @@ async def get_all_plans(
         raise
     except Exception as e:
         print(f"Error fetching plans: {e}")
+        MonitoringService.capture_exception(e, {"user_id": user_id, "action": "get_all_plans"})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch plans: {str(e)}",
@@ -160,13 +163,39 @@ async def generate_plan(
     """
 
     try:
-        # Generate plan using AI
+        # Set user context for monitoring
+        MonitoringService.set_user_context(user_id)
+        
+        # Generate plan using AI with performance tracking
         print(f"Generating plan for: {request.title}")
-        ai_response = generate_plan_with_ai(
-            title=request.title,
-            description=request.description,
-            timeline=request.timeline,
-        )
+        
+        with PerformanceTimer("ai_plan_generation") as timer:
+            try:
+                ai_response = generate_plan_with_ai(
+                    title=request.title,
+                    description=request.description,
+                    timeline=request.timeline,
+                )
+                
+                # Track successful generation
+                MonitoringService.track_ai_generation(
+                    user_id=user_id,
+                    plan_title=request.title,
+                    success=True,
+                    duration_ms=timer.get_duration_ms(),
+                    task_count=len(ai_response.get("tasks", [])),
+                    resource_count=len(ai_response.get("resources", [])),
+                )
+            except Exception as ai_error:
+                # Track failed generation
+                MonitoringService.track_ai_generation(
+                    user_id=user_id,
+                    plan_title=request.title,
+                    success=False,
+                    duration_ms=timer.get_duration_ms(),
+                    error=str(ai_error),
+                )
+                raise ai_error
 
         # Create plan in database
         plan_data = {
@@ -186,6 +215,13 @@ async def generate_plan(
 
         plan = plan_result.data[0]
         plan_id = plan["id"]
+
+        # Track plan creation event
+        MonitoringService.track_plan_created(
+            user_id=user_id, 
+            plan_id=plan_id,
+            plan_type=ai_response.get("plan_type")
+        )
 
         # Insert tasks with AI intelligence metadata
         tasks_data = []
@@ -267,6 +303,7 @@ async def generate_plan(
         raise
     except Exception as e:
         print(f"Error generating plan: {e}")
+        MonitoringService.capture_exception(e, {"user_id": user_id, "action": "generate_plan", "title": request.title})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate plan: {str(e)}",

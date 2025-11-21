@@ -26,6 +26,8 @@ import { SubtasksList } from './SubtasksList';
 import { TaskDescription } from './TaskDescription';
 import { formatTimeEstimate, formatCost, getDifficultyLabel, getDifficultyColor } from '@/types/intelligence-helpers';
 
+import { Analytics } from '@/lib/monitoring/analytics';
+
 interface TaskItemProps {
   task: Task;
   planId: string;
@@ -108,6 +110,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
     onSuccess: (data, updates) => {
       if (updates.status === 'completed') {
         toast.success('Task completed!');
+        Analytics.trackTaskCompleted(task.id, planId);
       } else {
         toast.success('Task updated');
       }

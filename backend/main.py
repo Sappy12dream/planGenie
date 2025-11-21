@@ -2,11 +2,42 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
 
 from api.routes import plans, tasks, chat, uploads, subtasks
 
 # Load environment variables
 load_dotenv()
+
+# Initialize Sentry for error tracking and performance monitoring
+sentry_dsn = os.getenv("SENTRY_DSN")
+environment = os.getenv("ENVIRONMENT", "development")
+
+if sentry_dsn:
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        environment=environment,
+        # Set traces_sample_rate to 1.0 to capture 100% of transactions for performance monitoring
+        # In production, you may want to reduce this to 0.1 (10%) to reduce costs
+        traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "1.0")),
+        # Set profiles_sample_rate to 1.0 to profile 100% of sampled transactions
+        # Remove this option if you don't want to use the profiling feature
+        profiles_sample_rate=float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "1.0")),
+        # Enable performance monitoring
+        enable_tracing=True,
+        # Integrations
+        integrations=[
+            FastApiIntegration(transaction_style="endpoint"),
+            StarletteIntegration(transaction_style="endpoint"),
+        ],
+        # Send default PII (Personally Identifiable Information) like user ID
+        send_default_pii=True,
+    )
+    print(f"✅ Sentry initialized for environment: {environment}")
+else:
+    print("⚠️  Sentry DSN not found - error tracking disabled")
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -49,3 +80,4 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+

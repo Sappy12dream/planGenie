@@ -10,6 +10,7 @@ from api.schemas.task_schemas import (
 from api.schemas.plan_schemas import TaskResponse
 from services.supabase_service import get_supabase_client
 from services.auth_service import get_user_from_token
+from services.monitoring_service import MonitoringService
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
@@ -33,6 +34,7 @@ def verify_plan_ownership(supabase: Client, plan_id: str, user_id: str):
         raise
     except Exception as e:
         print(f"Error verifying plan ownership: {e}")
+        MonitoringService.capture_exception(e, {"user_id": user_id, "action": "verify_plan_ownership", "plan_id": plan_id})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error verifying plan ownership: {str(e)}"
@@ -57,6 +59,7 @@ def verify_task_ownership(supabase: Client, task_id: str, user_id: str) -> str:
         raise
     except Exception as e:
         print(f"Error verifying task ownership: {e}")
+        MonitoringService.capture_exception(e, {"user_id": user_id, "action": "verify_task_ownership", "task_id": task_id})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error verifying task ownership: {str(e)}"
@@ -99,6 +102,7 @@ async def create_task(
         raise
     except Exception as e:
         print(f"Error creating task: {e}")
+        MonitoringService.capture_exception(e, {"user_id": user_id, "action": "create_task", "plan_id": plan_id})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create task: {str(e)}"
@@ -113,7 +117,7 @@ async def update_task(
 ):
     """Update a task"""
     try:
-        verify_task_ownership(supabase, task_id, user_id)
+        plan_id = verify_task_ownership(supabase, task_id, user_id)
         
         update_data = {}
         if request.title is not None:
@@ -154,6 +158,10 @@ async def update_task(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Task not found or update failed"
             )
+            
+        # Track task completion if status changed to completed
+        if request.status == "completed":
+            MonitoringService.track_task_completed(user_id, task_id, plan_id)
         
         return TaskResponse(**result.data[0])
         
@@ -161,6 +169,7 @@ async def update_task(
         raise
     except Exception as e:
         print(f"Error updating task: {e}")
+        MonitoringService.capture_exception(e, {"user_id": user_id, "action": "update_task", "task_id": task_id})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update task: {str(e)}"
