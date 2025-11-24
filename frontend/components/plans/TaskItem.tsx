@@ -236,16 +236,18 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
           <div className="flex flex-1 items-start gap-2">
             {/* Expand/Collapse Button */}
             {task.description && !isEditingTitle && (
-              <button
+              <Button
+                variant="ghost"
+                size="icon-sm"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="cursor-pointer mt-0.5 shrink-0 text-slate-400 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-400"
+                className="mt-0.5 shrink-0 text-slate-400 hover:text-slate-600 dark:text-slate-600 dark:hover:text-slate-400"
               >
                 {isExpanded ? (
                   <ChevronDown className="h-4 w-4" />
                 ) : (
                   <ChevronRight className="h-4 w-4" />
                 )}
-              </button>
+              </Button>
             )}
 
             {/* Editable Title */}
@@ -317,12 +319,14 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
         )}
 
         {!task.description && !isEditingTitle && !isEditingDescription && (
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setIsEditingDescription(true)}
-            className="cursor-pointer mb-2 text-sm text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
+            className="mb-2 text-sm text-slate-400 hover:text-blue-600 dark:hover:text-blue-400"
           >
             + Add description
-          </button>
+          </Button>
         )}
 
         {task.due_date && (
@@ -395,7 +399,7 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
         )}
 
         {/* Detailed Intelligence - Show when expanded */}
-        {isExpanded && (task.tools_needed?.length || task.prerequisites?.length) && (
+        {isExpanded && ((task.tools_needed?.length ?? 0) > 0 || (task.prerequisites?.length ?? 0) > 0) && (
           <div className="mb-3 space-y-2 rounded-lg bg-slate-50 dark:bg-slate-800 p-3 text-sm">
             {/* Tools List */}
             {task.tools_needed && task.tools_needed.length > 0 && (

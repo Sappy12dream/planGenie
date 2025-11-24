@@ -95,12 +95,13 @@ export default function PlanPage() {
 
           {/* Floating Chat Button (Mobile) */}
           {!isChatOpen && (
-            <button
+            <Button
+              size="icon-lg"
               onClick={() => setIsChatOpen(true)}
-              className="fixed bottom-6 right-6 lg:hidden w-14 h-14 bg-blue-600 dark:bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors z-30 cursor-pointer"
+              className="fixed bottom-6 right-6 lg:hidden w-14 h-14 bg-blue-600 dark:bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors z-30"
             >
               <MessageSquare className="h-6 w-6" />
-            </button>
+            </Button>
           )}
         </div>
       )}
