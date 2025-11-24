@@ -1,7 +1,17 @@
-import { render, screen } from '@/__tests__/utils/test-utils'
+import { render, screen, waitFor, fireEvent } from '@/__tests__/utils/test-utils'
 import { TaskItem } from '@/components/plans/TaskItem'
 import { Task } from '@/types/plan'
+import { tasksApi } from '@/lib/api/tasks'
 import userEvent from '@testing-library/user-event'
+import { toast } from 'sonner'
+
+// Mock tasks API
+jest.mock('@/lib/api/tasks', () => ({
+    tasksApi: {
+        updateTask: jest.fn(),
+        deleteTask: jest.fn(),
+    },
+}))
 
 // Mock sonner toast
 jest.mock('sonner', () => ({
@@ -31,10 +41,14 @@ const mockTask: Task = {
 }
 
 describe('TaskItem', () => {
+    beforeEach(() => {
+        jest.clearAllMocks()
+    })
+
     it('renders task title and description', () => {
         render(<TaskItem task={mockTask} planId="plan-123" />)
 
-        expect(screen.getByText('Test Task')).toBeInTheDocument()
+        expect(screen.getByRole('heading', { name: 'Test Task' })).toBeInTheDocument()
         // Description is collapsed by default when task is not expanded
     })
 
@@ -63,7 +77,7 @@ describe('TaskItem', () => {
         const completedTask = { ...mockTask, status: 'completed' as const }
         render(<TaskItem task={completedTask} planId="plan-123" />)
 
-        const titleElement = screen.getByText('Test Task')
+        const titleElement = screen.getByRole('heading', { name: 'Test Task' })
         expect(titleElement).toHaveClass('line-through')
     })
 
@@ -79,8 +93,7 @@ describe('TaskItem', () => {
         const user = userEvent.setup()
         render(<TaskItem task={mockTask} planId="plan-123" />)
 
-        // Click the expand button (ChevronRight icon)
-        const titleElement = screen.getByText('Test Task')
+        const titleElement = screen.getByRole('heading', { name: 'Test Task' })
         await user.click(titleElement)
 
         // Description should now be visible
@@ -100,5 +113,72 @@ describe('TaskItem', () => {
         render(<TaskItem task={taskWithoutDescription} planId="plan-123" />)
 
         expect(screen.getByText('+ Add description')).toBeInTheDocument()
+    })
+
+    it('allows editing title', async () => {
+        const user = userEvent.setup()
+        // Test with a task WITHOUT description because title editing is only enabled when no description
+        // or via a different interaction not fully clear from previous code reading, but likely only when no description
+        const taskNoDesc = { ...mockTask, description: null }
+        render(<TaskItem task={taskNoDesc} planId="plan-123" />)
+
+        const titleElement = screen.getByRole('heading', { name: 'Test Task' })
+        await user.click(titleElement)
+
+        // Should be replaced by input
+        const input = screen.getByDisplayValue('Test Task')
+        await user.clear(input)
+        await user.type(input, 'Updated Task{enter}')
+
+        await waitFor(() => {
+            expect(tasksApi.updateTask).toHaveBeenCalledWith('task-123', { title: 'Updated Task' })
+        })
+    })
+
+    it('allows editing description', async () => {
+        const user = userEvent.setup()
+        render(<TaskItem task={mockTask} planId="plan-123" />)
+
+        // Expand first
+        await user.click(screen.getByRole('heading', { name: 'Test Task' }))
+
+        // Click description to edit
+        await user.click(screen.getByText('This is a test task description'))
+
+        // Should be textarea
+        const textarea = screen.getByDisplayValue('This is a test task description')
+        await user.clear(textarea)
+        await user.type(textarea, 'New Description')
+
+        // Save by blurring
+        fireEvent.blur(textarea)
+
+        await waitFor(() => {
+            expect(tasksApi.updateTask).toHaveBeenCalledWith('task-123', { description: 'New Description' })
+        })
+    })
+
+    it('deletes task after confirmation', async () => {
+        const user = userEvent.setup()
+        render(<TaskItem task={mockTask} planId="plan-123" />)
+
+        // Find delete button. It's the one with Trash2 icon.
+        // We can find by role button and filter or assume it's the last one?
+        const buttons = screen.getAllByRole('button')
+        // The delete button is likely the last one or one with specific class
+        const deleteBtn = buttons[buttons.length - 1]
+        await user.click(deleteBtn)
+
+        // Dialog should open
+        expect(screen.getByText('Delete Task')).toBeInTheDocument()
+        expect(screen.getByText(/Are you sure you want to delete/)).toBeInTheDocument()
+
+        // Click confirm delete
+        await user.click(screen.getByText('Delete', { selector: 'button' }))
+
+        await waitFor(() => {
+            expect(tasksApi.deleteTask).toHaveBeenCalledWith('task-123')
+            expect(toast.success).toHaveBeenCalledWith('Task deleted')
+        })
     })
 })
