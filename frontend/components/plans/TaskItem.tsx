@@ -213,7 +213,10 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
         }`}
     >
       {/* Drag Handle */}
-      <div className="mt-1 shrink-0 cursor-grab text-slate-300 dark:text-slate-700 transition-colors hover:text-slate-500 dark:hover:text-slate-500 active:cursor-grabbing">
+      <div
+        className="mt-1 shrink-0 cursor-grab text-slate-300 dark:text-slate-700 transition-colors hover:text-slate-500 dark:hover:text-slate-500 active:cursor-grabbing"
+        aria-label="Drag to reorder"
+      >
         <GripVertical className="h-5 w-5" />
       </div>
 
