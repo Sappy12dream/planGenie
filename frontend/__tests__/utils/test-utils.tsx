@@ -1,4 +1,5 @@
-import React from 'react'
+jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn() }) }));
+
 import { render, RenderOptions } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
@@ -19,7 +20,9 @@ function customRender(ui: React.ReactElement, options?: RenderOptions) {
         </QueryClientProvider>
     )
 
-    return render(ui, { wrapper: Wrapper, ...options })
+    const router = { push: jest.fn() };
+    const renderResult = render(ui, { wrapper: Wrapper, ...options });
+    return { ...renderResult, router };
 }
 
 // Re-export everything from React Testing Library

@@ -96,7 +96,7 @@ export function PlanInputForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" data-testid="plan-input-form">
       {/* Title */}
       <div className="space-y-2">
         <Label htmlFor="title" className="dark:text-slate-200">
