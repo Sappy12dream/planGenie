@@ -6,7 +6,7 @@ import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
 
-from api.routes import plans, tasks, chat, uploads, subtasks
+from api.routes import plans, tasks, chat, uploads, subtasks, templates
 
 # Load environment variables
 load_dotenv()
@@ -64,6 +64,7 @@ app.include_router(tasks.router)
 app.include_router(chat.router)
 app.include_router(uploads.router)
 app.include_router(subtasks.router)
+app.include_router(templates.router)
 
 @app.get("/")
 async def root():

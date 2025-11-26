@@ -65,4 +65,11 @@ export const plansApi = {
   async updatePlanStatus(planId: string, status: string): Promise<Plan> {
     return api.patch<Plan>(`/api/plans/${planId}/status?status=${status}`);
   },
+
+  /**
+   * Get all available plan templates
+   */
+  async getTemplates(): Promise<any[]> {
+    return api.get<any[]>('/api/templates');
+  },
 };

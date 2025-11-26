@@ -7,9 +7,27 @@ import { Button } from '@/components/ui/button';
 import { Sparkles, LogOut, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import { useState, useEffect } from 'react';
+import { TemplateList, Template } from '@/components/plans/TemplateList';
+import { plansApi } from '@/lib/api/plans';
+
 export default function NewPlanPage() {
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+
+  useEffect(() => {
+    const loadTemplates = async () => {
+      try {
+        const data = await plansApi.getTemplates();
+        setTemplates(data);
+      } catch (error) {
+        console.error('Failed to load templates:', error);
+      }
+    };
+    loadTemplates();
+  }, []);
 
   return (
     <ProtectedRoute>
@@ -65,10 +83,27 @@ export default function NewPlanPage() {
             </p>
           </div>
 
+          {/* Templates Section */}
+          {templates.length > 0 && (
+            <div className="mx-auto mb-12 max-w-6xl">
+              <div className="mb-6 flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-yellow-500" />
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  Start with a Template
+                </h2>
+              </div>
+              <TemplateList
+                templates={templates}
+                onSelect={setSelectedTemplate}
+                selectedId={selectedTemplate?.id}
+              />
+            </div>
+          )}
+
           {/* Form */}
-          <div className="mx-auto max-w-2xl">
+          <div className="mx-auto max-w-4xl space-y-8">
             <div className="rounded-xl border bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <PlanInputForm />
+              <PlanInputForm selectedTemplate={selectedTemplate} />
             </div>
           </div>
         </div>

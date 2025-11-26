@@ -5,6 +5,13 @@ import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import Mock, MagicMock
 from uuid import uuid4
+import os
+
+# Set dummy environment variables for testing
+os.environ["SUPABASE_URL"] = "https://example.supabase.co"
+os.environ["SUPABASE_SERVICE_ROLE_KEY"] = "dummy-key"
+os.environ["OPENAI_API_KEY"] = "dummy-key"
+os.environ["SENTRY_DSN"] = "https://dummy@sentry.io/123"
 
 from main import app
 

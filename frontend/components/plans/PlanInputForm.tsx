@@ -32,7 +32,14 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export function PlanInputForm() {
+import { useEffect } from 'react';
+import { Template } from './TemplateList';
+
+interface PlanInputFormProps {
+  selectedTemplate?: Template | null;
+}
+
+export function PlanInputForm({ selectedTemplate }: PlanInputFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -40,10 +47,19 @@ export function PlanInputForm() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
   });
+
+  useEffect(() => {
+    if (selectedTemplate) {
+      setValue('title', selectedTemplate.title);
+      setValue('description', selectedTemplate.description);
+      setValue('timeline', selectedTemplate.timeline);
+    }
+  }, [selectedTemplate, setValue]);
 
   const generateMutation = useMutation({
     mutationFn: (data: PlanGenerateRequest) => plansApi.generatePlan(data),
