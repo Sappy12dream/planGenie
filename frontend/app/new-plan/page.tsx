@@ -83,9 +83,18 @@ export default function NewPlanPage() {
             </p>
           </div>
 
+
+
+          {/* Form */}
+          <div className="mx-auto max-w-4xl space-y-8">
+            <div className="rounded-xl border bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <PlanInputForm selectedTemplate={selectedTemplate} />
+            </div>
+          </div>
+
           {/* Templates Section */}
           {templates.length > 0 && (
-            <div className="mx-auto mb-12 max-w-6xl">
+            <div className="mx-auto mt-12 max-w-6xl">
               <div className="mb-6 flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-yellow-500" />
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
@@ -99,13 +108,6 @@ export default function NewPlanPage() {
               />
             </div>
           )}
-
-          {/* Form */}
-          <div className="mx-auto max-w-4xl space-y-8">
-            <div className="rounded-xl border bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <PlanInputForm selectedTemplate={selectedTemplate} />
-            </div>
-          </div>
         </div>
       </div>
     </ProtectedRoute>
