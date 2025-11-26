@@ -2,11 +2,26 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth/AuthContext';
-import { Toaster } from 'sonner';
 import { QueryProvider } from '@/lib/QueryProvider';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { NetworkStatus } from '@/components/NetworkStatus';
-import { ThemeProvider } from '@/components/ThemeProvider';
+import { lazy, Suspense } from 'react';
+
+// Lazy load non-critical UI components to reduce initial bundle size
+const ThemeProvider = lazy(() =>
+  import('@/components/ThemeProvider').then((mod) => ({
+    default: mod.ThemeProvider,
+  }))
+);
+const ErrorBoundary = lazy(() =>
+  import('@/components/ErrorBoundary').then((mod) => ({
+    default: mod.ErrorBoundary,
+  }))
+);
+const NetworkStatus = lazy(() => import('@/components/NetworkStatus').then((mod) => ({
+  default: mod.NetworkStatus,
+})));
+const Toaster = lazy(() =>
+  import('sonner').then((mod) => ({ default: mod.Toaster }))
+);
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -41,22 +56,30 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ErrorBoundary>
-            <AuthProvider>
-              <QueryProvider>
-                {children}
-                <NetworkStatus />
-                <Toaster position="top-right" richColors />
-              </QueryProvider>
-            </AuthProvider>
-          </ErrorBoundary>
-        </ThemeProvider>
+        <Suspense fallback={null}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Suspense fallback={<div className="min-h-screen bg-slate-50 dark:bg-slate-950" />}>
+              <ErrorBoundary>
+                <AuthProvider>
+                  <QueryProvider>
+                    {children}
+                    <Suspense fallback={null}>
+                      <NetworkStatus />
+                    </Suspense>
+                    <Suspense fallback={null}>
+                      <Toaster position="top-right" richColors />
+                    </Suspense>
+                  </QueryProvider>
+                </AuthProvider>
+              </ErrorBoundary>
+            </Suspense>
+          </ThemeProvider>
+        </Suspense>
       </body>
     </html>
   );

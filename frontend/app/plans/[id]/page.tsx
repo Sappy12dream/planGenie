@@ -1,15 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { plansApi } from '@/lib/api/plans';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { PlanDisplay } from '@/components/plans/PlanDisplay';
-import { ChatSidebar } from '@/components/plans/ChatSidebar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, AlertCircle, MessageSquare } from 'lucide-react';
+import { PlanDisplaySkeleton, ChatSidebarSkeleton } from '@/components/LoadingFallbacks';
+
+// Lazy load heavy components to reduce initial bundle size
+const PlanDisplay = lazy(() => import('@/components/plans/PlanDisplay').then(mod => ({ default: mod.PlanDisplay })));
+const ChatSidebar = lazy(() => import('@/components/plans/ChatSidebar').then(mod => ({ default: mod.ChatSidebar })));
 
 export default function PlanPage() {
   const params = useParams();
@@ -83,15 +86,19 @@ export default function PlanPage() {
               </Button>
             </div>
 
-            <PlanDisplay plan={plan} />
+            <Suspense fallback={<PlanDisplaySkeleton />}>
+              <PlanDisplay plan={plan} />
+            </Suspense>
           </div>
 
           {/* Chat Sidebar */}
-          <ChatSidebar
-            planId={planId}
-            isOpen={isChatOpen}
-            onClose={() => setIsChatOpen(false)}
-          />
+          <Suspense fallback={<ChatSidebarSkeleton />}>
+            <ChatSidebar
+              planId={planId}
+              isOpen={isChatOpen}
+              onClose={() => setIsChatOpen(false)}
+            />
+          </Suspense>
 
           {/* Floating Chat Button (Mobile) */}
           {!isChatOpen && (

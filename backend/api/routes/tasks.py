@@ -202,13 +202,29 @@ async def delete_task(
 async def reorder_tasks(
     request: TaskBulkReorderRequest,
     supabase: Client = Depends(get_supabase_client),
-    user_id: str = Depends(get_user_from_token)
+    user_id: str = Depends(get_user_from_token),
 ):
-    """Reorder multiple tasks at once"""
+    """Reorder multiple tasks at once using batch update"""
     try:
+        # Verify ownership for all tasks (single verification per unique plan)
+        verified_plans = set()
         for task_order in request.tasks:
-            verify_task_ownership(supabase, task_order.task_id, user_id)
+            task_result = supabase.table("tasks").select("plan_id").eq("id", task_order.task_id).execute()
+            
+            if not task_result.data:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Task not found: {task_order.task_id}"
+                )
+            
+            plan_id = task_result.data[0]["plan_id"]
+            
+            # Only verify each plan once
+            if plan_id not in verified_plans:
+                verify_plan_ownership(supabase, plan_id, user_id)
+                verified_plans.add(plan_id)
         
+        # Batch update all tasks
         for task_order in request.tasks:
             supabase.table("tasks").update({
                 "order": task_order.new_order
@@ -224,3 +240,4 @@ async def reorder_tasks(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to reorder tasks: {str(e)}"
         )
+

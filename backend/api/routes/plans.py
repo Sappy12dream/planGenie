@@ -319,8 +319,13 @@ async def get_plan(
     """Get a plan by ID with all tasks and resources"""
 
     try:
-        # Get plan (RLS will automatically filter by user)
-        plan_result = supabase.table("plans").select("*").eq("id", plan_id).execute()
+        # Get plan with nested tasks and resources in a single query (avoids N+1)
+        plan_result = (
+            supabase.table("plans")
+            .select("*, tasks(*), resources(*)")
+            .eq("id", plan_id)
+            .execute()
+        )
 
         if not plan_result.data:
             raise HTTPException(
@@ -336,19 +341,11 @@ async def get_plan(
                 detail="Not authorized to access this plan",
             )
 
-        # Get tasks
-        tasks_result = (
-            supabase.table("tasks")
-            .select("*")
-            .eq("plan_id", plan_id)
-            .order("order")
-            .execute()
-        )
-
-        # Get resources
-        resources_result = (
-            supabase.table("resources").select("*").eq("plan_id", plan_id).execute()
-        )
+        # Extract and sort tasks
+        tasks = plan.get("tasks", [])
+        tasks.sort(key=lambda x: x.get("order", 0))
+        
+        resources = plan.get("resources", [])
 
         # Build response with AI metadata
         plan_response = PlanResponse(
@@ -357,8 +354,8 @@ async def get_plan(
             title=plan["title"],
             description=plan["description"],
             status=plan["status"],
-            tasks=[TaskResponse(**t) for t in tasks_result.data],
-            resources=[ResourceResponse(**r) for r in resources_result.data],
+            tasks=[TaskResponse(**t) for t in tasks],
+            resources=[ResourceResponse(**r) for r in resources],
             created_at=plan["created_at"],
             updated_at=plan["updated_at"],
             plan_type=plan.get("plan_type"),

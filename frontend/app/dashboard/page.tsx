@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { plansApi } from '@/lib/api/plans';
@@ -16,10 +16,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Plus, Sparkles, LogOut, User, Settings, HelpCircle } from 'lucide-react';
-import { PlanCard } from '@/components/dashboard/PlanCard';
 import { PlanCardSkeleton } from '@/components/dashboard/PlanCardSkeleton';
-import { Tutorial } from '@/components/tutorial/Tutorial';
-import { HelpButton } from '@/components/HelpButton';
+
+// Lazy load heavy components to reduce initial bundle size
+const PlanCard = lazy(() => import('@/components/dashboard/PlanCard').then(mod => ({ default: mod.PlanCard })));
+const Tutorial = lazy(() => import('@/components/tutorial/Tutorial').then(mod => ({ default: mod.Tutorial })));
+const HelpButton = lazy(() => import('@/components/HelpButton').then(mod => ({ default: mod.HelpButton })));
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -60,7 +62,9 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <Tutorial />
+      <Suspense fallback={null}>
+        <Tutorial />
+      </Suspense>
       <div className="min-h-screen bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
         {/* Header */}
         <div className="border-b bg-white/50 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/50">
@@ -238,7 +242,9 @@ export default function DashboardPage() {
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {plans.map((plan) => (
-                <PlanCard key={plan.id} plan={plan} />
+                <Suspense key={plan.id} fallback={<PlanCardSkeleton />}>
+                  <PlanCard plan={plan} />
+                </Suspense>
               ))}
             </div>
           )}
@@ -262,7 +268,9 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
-      <HelpButton />
+      <Suspense fallback={null}>
+        <HelpButton />
+      </Suspense>
     </ProtectedRoute>
   );
 }

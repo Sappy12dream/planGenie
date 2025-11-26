@@ -99,11 +99,10 @@ async def send_message(
     try:
         verify_plan_ownership(supabase, plan_id, user_id)
         
-        plan_result = supabase.table("plans").select("*").eq("id", plan_id).execute()
+        # Get plan and tasks in a single query (avoids N+1)
+        plan_result = supabase.table("plans").select("*, tasks(*)").eq("id", plan_id).execute()
         plan = plan_result.data[0]
-        
-        tasks_result = supabase.table("tasks").select("*").eq("plan_id", plan_id).order("order").execute()
-        tasks = tasks_result.data
+        tasks = plan.get("tasks", [])
         
         history_result = supabase.table("messages").select("*").eq("plan_id", plan_id).order("created_at", desc=False).limit(10).execute()
         chat_history = history_result.data
@@ -189,14 +188,15 @@ async def get_suggestions(
                     detail=f"Rate limit exceeded. Try again later. Remaining: {remaining}"
                 )
             
-            # Fetch plan and tasks
-            plan_result = supabase.table("plans").select("*").eq("id", plan_id).execute()
-            tasks_result = supabase.table("tasks").select("*").eq("plan_id", plan_id).execute()
+            # Fetch plan and tasks in a single query
+            plan_result = supabase.table("plans").select("*, tasks(*)").eq("id", plan_id).execute()
+            plan_data = plan_result.data[0] if plan_result.data else None
+            tasks_data = plan_data.get("tasks", []) if plan_data else []
             
-            if plan_result.data:
+            if plan_data:
                 new_suggestions = generate_proactive_suggestions(
-                    plan_result.data[0],
-                    tasks_result.data,
+                    plan_data,
+                    tasks_data,
                     user_id,
                     supabase
                 )

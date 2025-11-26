@@ -1,15 +1,18 @@
 'use client';
 
-import { PlanInputForm } from '@/components/plans/PlanInputForm';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Sparkles, LogOut, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
-import { useState, useEffect } from 'react';
-import { TemplateList, Template } from '@/components/plans/TemplateList';
+import { useState, useEffect, lazy, Suspense } from 'react';
+import { Template } from '@/components/plans/TemplateList';
 import { plansApi } from '@/lib/api/plans';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Lazy load heavy components
+const PlanInputForm = lazy(() => import('@/components/plans/PlanInputForm').then(mod => ({ default: mod.PlanInputForm })));
+const TemplateList = lazy(() => import('@/components/plans/TemplateList').then(mod => ({ default: mod.TemplateList })));
 
 export default function NewPlanPage() {
   const { user, signOut } = useAuth();
@@ -88,7 +91,9 @@ export default function NewPlanPage() {
           {/* Form */}
           <div className="mx-auto max-w-4xl space-y-8">
             <div className="rounded-xl border bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <PlanInputForm selectedTemplate={selectedTemplate} />
+              <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                <PlanInputForm selectedTemplate={selectedTemplate} />
+              </Suspense>
             </div>
           </div>
 
