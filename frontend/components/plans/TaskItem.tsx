@@ -7,7 +7,7 @@ import { tasksApi, TaskUpdateRequest } from '@/lib/api/tasks';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, GripVertical, ChevronDown, ChevronRight, Clock, Target, DollarSign, Wrench, Tag, AlertCircle } from 'lucide-react';
+import { Trash2, GripVertical, ChevronDown, ChevronRight, Clock, Target, DollarSign, Wrench, Tag, AlertCircle, Calendar } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +25,8 @@ import { TaskFileUpload } from './TaskFileUpload';
 import { SubtasksList } from './SubtasksList';
 import { TaskDescription } from './TaskDescription';
 import { formatTimeEstimate, formatCost, getDifficultyLabel, getDifficultyColor } from '@/types/intelligence-helpers';
+import { DatePicker } from '@/components/ui/date-picker';
+import { formatRelativeDate, isOverdue, getDueDateBadgeVariant } from '@/lib/utils/date-utils';
 
 import { Analytics } from '@/lib/monitoring/analytics';
 
@@ -332,11 +334,36 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
           </Button>
         )}
 
-        {task.due_date && (
-          <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
-            Due: {new Date(task.due_date).toLocaleDateString()}
-          </p>
-        )}
+        {/* Due Date Section */}
+        <div className="mb-3 flex items-center gap-2">
+          <DatePicker
+            date={task.due_date ? new Date(task.due_date) : undefined}
+            onDateChange={(newDate) => {
+              updateTaskMutation.mutate({
+                due_date: newDate ? newDate.toISOString().split('T')[0] : undefined,
+              });
+            }}
+            placeholder="Set due date"
+            disabled={updateTaskMutation.isPending}
+            className="h-8 text-xs"
+          />
+          {task.due_date && (
+            <div className="flex items-center gap-2">
+              <Badge
+                variant={getDueDateBadgeVariant(task.due_date, task.status)}
+                className="text-xs"
+              >
+                <Calendar className="mr-1 h-3 w-3" />
+                {formatRelativeDate(task.due_date)}
+              </Badge>
+              {isOverdue(task.due_date, task.status) && (
+                <Badge variant="destructive" className="text-xs font-semibold">
+                  Overdue
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* AI Intelligence Metadata */}
         {(task.estimated_time_hours || task.difficulty || task.estimated_cost_usd !== undefined ||
