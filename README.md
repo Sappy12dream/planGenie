@@ -47,6 +47,24 @@ Transform your vague goals into actionable, trackable plans with the power of AI
 - **Appearance Options**: Dark mode support (coming soon)
 - **Account Management**: Logout or delete account options
 
+### 🔔 Notification & Smart Alert System
+- **Smart Dashboard Alerts**: Proactive suggestions displayed on your dashboard
+  - **Quick Wins**: Tasks under 1 hour with high priority
+  - **Overdue Alerts**: Tasks past their due date
+  - **High Priority**: Important tasks due soon
+  - Auto-refresh every 5 minutes
+  - One-click dismiss or action buttons
+- **Email Notifications**: Stay informed with automated emails (powered by Resend)
+  - Task reminders (configurable hours before due date)
+  - Overdue task notifications
+  - Weekly progress digests (configurable day of week)
+  - Beautiful HTML templates with one-click actions
+- **User Preferences**: Full control over notification settings
+  - Toggle email notifications on/off
+  - Configure reminder timing (24 hours before by default)
+  - Set weekly digest day (Sunday by default)
+  - Persistent settings across sessions
+
 ### 🔒 Authentication & Security
 - **Email/Password Authentication**: Traditional sign-up and login
 - **Google OAuth**: One-click sign-in with Google
@@ -67,6 +85,9 @@ Transform your vague goals into actionable, trackable plans with the power of AI
 ### Backend
 - **Framework**: FastAPI (Python 3.9+)
 - **AI Integration**: OpenAI GPT-4o-mini for plan generation
+- **Email Service**: Resend for transactional emails
+- **Notifications**: APScheduler for background jobs (daily reminders, weekly digests)
+- **Templates**: Jinja2 for HTML email rendering
 - **API Documentation**: Auto-generated Swagger UI and ReDoc
 - **Validation**: Pydantic models
 - **CORS**: Configured for frontend communication
@@ -96,6 +117,7 @@ Before you begin, ensure you have the following installed:
 You'll also need accounts for:
 - **Supabase** (free tier available) - [Sign up here](https://supabase.com)
 - **OpenAI** API key - [Get API key](https://platform.openai.com/api-keys)
+- **Resend** (optional, for email notifications) - [Sign up here](https://resend.com) - Free tier: 100 emails/day
 
 ## 🛠️ Installation & Setup
 
@@ -136,11 +158,18 @@ cp .env.example .env
 
 Edit `backend/.env` with your credentials:
 ```env
+# Required
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 OPENAI_API_KEY=sk-your_openai_key_here
+
+# Optional - Email Notifications
+RESEND_API_KEY=re_your_resend_key_here
+
+# App Settings
 ENVIRONMENT=development
 DEBUG=True
+FRONTEND_URL=http://localhost:3004
 ```
 
 Start the backend server:
@@ -208,6 +237,29 @@ npm run dev
 1. Go to **Authentication** → **Providers**
 2. Enable **Google** provider
 3. Follow Supabase instructions to configure OAuth credentials
+
+### 7. Notification System Setup (Optional)
+
+**Run Database Migration:**
+1. In Supabase Dashboard, go to **SQL Editor**
+2. Click **New query**
+3. Copy and paste from `backend/migrations/02_create_notification_tables.sql`
+4. Click **Run** to create notification tables
+
+**Configure Resend for Email Notifications:**
+1. Sign up at [resend.com](https://resend.com) (free tier: 100 emails/day)
+2. Go to **API Keys** and create a new key
+3. Copy the API key (starts with `re_...`)
+4. Add to `backend/.env`:
+   ```env
+   RESEND_API_KEY=re_your_actual_key_here
+   ```
+5. Restart your backend server
+
+The notification system includes:
+- Smart dashboard alerts (Quick Wins, Overdue, High Priority)
+- Email notifications (task reminders, weekly digests, overdue alerts)
+- User preference management in settings
 
 ## 📁 Project Structure
 ```
@@ -482,21 +534,29 @@ If you encounter any issues or have questions:
 
 ## 🗺️ Roadmap
 
-Future features planned:
+### ✅ Recently Completed
+- [x] **Task Due Dates** - DatePicker with overdue indicators
+- [x] **Task Priority Levels** - Color-coded badges (High/Medium/Low)
+- [x] **Notification System** - Smart alerts and email notifications
+- [x] **Plan Templates** - Pre-built templates for common goals
+- [x] **Performance Optimization** - Code splitting and query optimization
 
+### 🚧 In Progress
+- [ ] **End-to-End Testing** - Playwright test suite for critical flows
+
+### 🔮 Future Features
 - [ ] **Calendar Integration**: Sync tasks with Google Calendar
 - [ ] **Team Collaboration**: Share plans with team members
-- [ ] **Plan Templates**: Pre-built templates for common goals
 - [ ] **Mobile App**: Native iOS and Android apps
 - [ ] **Dark Mode**: Full dark theme support
-- [ ] **AI Suggestions**: Proactive AI recommendations
 - [ ] **Analytics Dashboard**: Detailed productivity insights
 - [ ] **Export Plans**: PDF and CSV export functionality
 - [ ] **Recurring Tasks**: Support for repeated tasks
-- [ ] **Sub-tasks**: Break tasks into smaller sub-tasks
+- [ ] **Task Dependencies**: Link tasks with dependencies
+- [ ] **AI Document Verification**: Automatic proof validation
 
 ---
 
 **Built with ❤️ by Sapna**
 
-*Last updated: November 2024*
+*Last updated: December 2024*
