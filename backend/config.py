@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     # OpenAI
     openai_api_key: str
     
+    # Resend (Email Service)
+    resend_api_key: str | None = None
+    
     # App
     environment: str = "development"
     debug: bool = True
@@ -29,3 +32,4 @@ def get_settings():
     return Settings()
 
 settings = get_settings()
+

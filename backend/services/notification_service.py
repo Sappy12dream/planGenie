@@ -1,4 +1,3 @@
-import os
 import resend
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
@@ -6,7 +5,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from config import settings
 
 # Initialize Resend
-resend.api_key = os.getenv("RESEND_API_KEY")
+resend.api_key = settings.resend_api_key
 
 # Initialize Jinja2 environment for email templates
 template_env = Environment(

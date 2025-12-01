@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-import os
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
@@ -9,24 +8,22 @@ from sentry_sdk.integrations.starlette import StarletteIntegration
 from contextlib import asynccontextmanager
 from api.routes import plans, tasks, chat, uploads, subtasks, templates, preferences, alerts
 from services.scheduler_service import start_scheduler, shutdown_scheduler
+from config import settings
 
 # Load environment variables
 load_dotenv()
 
 # Initialize Sentry for error tracking and performance monitoring
-sentry_dsn = os.getenv("SENTRY_DSN")
-environment = os.getenv("ENVIRONMENT", "development")
-
-if sentry_dsn:
+if settings.sentry_dsn:
     sentry_sdk.init(
-        dsn=sentry_dsn,
-        environment=environment,
+        dsn=settings.sentry_dsn,
+        environment=settings.environment,
         # Set traces_sample_rate to 1.0 to capture 100% of transactions for performance monitoring
         # In production, you may want to reduce this to 0.1 (10%) to reduce costs
-        traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "1.0")),
+        traces_sample_rate=settings.sentry_traces_sample_rate,
         # Set profiles_sample_rate to 1.0 to profile 100% of sampled transactions
         # Remove this option if you don't want to use the profiling feature
-        profiles_sample_rate=float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "1.0")),
+        profiles_sample_rate=settings.sentry_profiles_sample_rate,
         # Enable performance monitoring
         enable_tracing=True,
         # Integrations
@@ -37,7 +34,7 @@ if sentry_dsn:
         # Send default PII (Personally Identifiable Information) like user ID
         send_default_pii=True,
     )
-    print(f"✅ Sentry initialized for environment: {environment}")
+    print(f"✅ Sentry initialized for environment: {settings.environment}")
 else:
     print("⚠️  Sentry DSN not found - error tracking disabled")
 
