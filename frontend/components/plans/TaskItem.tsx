@@ -27,6 +27,7 @@ import { TaskDescription } from './TaskDescription';
 import { formatTimeEstimate, formatCost, getDifficultyLabel, getDifficultyColor } from '@/types/intelligence-helpers';
 import { DatePicker } from '@/components/ui/date-picker';
 import { formatRelativeDate, isOverdue, getDueDateBadgeVariant } from '@/lib/utils/date-utils';
+import { PrioritySelector, PriorityBadge } from '@/components/ui/priority-selector';
 
 import { Analytics } from '@/lib/monitoring/analytics';
 
@@ -347,6 +348,16 @@ export function TaskItem({ task, planId, isDragging = false }: TaskItemProps) {
             disabled={updateTaskMutation.isPending}
             className="h-8 text-xs"
           />
+
+          <PrioritySelector
+            priority={task.priority || 'medium'}
+            onPriorityChange={(newPriority) => {
+              updateTaskMutation.mutate({ priority: newPriority });
+            }}
+            disabled={updateTaskMutation.isPending}
+            className="h-8"
+          />
+
           {task.due_date && (
             <div className="flex items-center gap-2">
               <Badge

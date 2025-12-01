@@ -27,12 +27,19 @@ class PlanGenerateRequest(BaseModel):
     timeline: Optional[str] = Field(None, description="Desired timeline (e.g., '2 weeks', '1 month')")
 
 # Response schemas
+class TaskPriority(str, Enum):
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+
+# Response schemas
 class TaskResponse(BaseModel):
     id: str
     plan_id: str
     title: str
     description: Optional[str]
     status: TaskStatus
+    priority: TaskPriority = TaskPriority.MEDIUM
     due_date: Optional[date]
     order: int
     created_at: datetime

@@ -84,6 +84,7 @@ async def create_task(
             "title": request.title,
             "description": request.description,
             "status": "pending",
+            "priority": request.priority,
             "due_date": request.due_date.isoformat() if request.due_date else None,
             "order": max_order + 1
         }
@@ -126,6 +127,8 @@ async def update_task(
             update_data["description"] = request.description
         if request.status is not None:
             update_data["status"] = request.status
+        if request.priority is not None:
+            update_data["priority"] = request.priority
         if request.due_date is not None:
             update_data["due_date"] = request.due_date.isoformat()
         if request.order is not None:

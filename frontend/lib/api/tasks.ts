@@ -12,6 +12,7 @@ export interface TaskUpdateRequest {
   title?: string;
   description?: string;
   status?: 'pending' | 'in_progress' | 'completed';
+  priority?: 'high' | 'medium' | 'low';
   due_date?: string;
   order?: number;
 }

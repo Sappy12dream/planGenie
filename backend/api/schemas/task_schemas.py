@@ -8,16 +8,23 @@ class TaskStatus(str, Enum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
 
+class TaskPriority(str, Enum):
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+
 class TaskCreateRequest(BaseModel):
     title: str = Field(..., min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     due_date: Optional[date] = None
+    priority: TaskPriority = TaskPriority.MEDIUM
     order: int = Field(default=0)
 
 class TaskUpdateRequest(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=200)
     description: Optional[str] = Field(None, max_length=1000)
     status: Optional[TaskStatus] = None
+    priority: Optional[TaskPriority] = None
     due_date: Optional[date] = None
     order: Optional[int] = None
     # AI Intelligence Metadata (optional for updates)

@@ -1,18 +1,29 @@
 'use client';
 
+import { useState } from 'react';
+
 import { Plan } from '@/types/plan';
 import { DraggableTaskList } from './DraggableTaskList';
 import { ResourceItem } from './ResourceItem';
 import { AddTaskDialog } from './AddTaskDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Clock, Target } from 'lucide-react';
+import { CheckCircle2, Clock, Target, ArrowUpDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 interface PlanDisplayProps {
   plan: Plan;
 }
 
 export function PlanDisplay({ plan }: PlanDisplayProps) {
+  const [sortBy, setSortBy] = useState<'manual' | 'priority' | 'due_date'>('manual');
+
   const completedTasks = (plan.tasks || []).filter((t) => t.status === 'completed').length;
   const totalTasks = plan.tasks?.length || 0;
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -24,8 +35,20 @@ export function PlanDisplay({ plan }: PlanDisplayProps) {
     archived: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400',
   };
 
-  // Sort tasks by order
-  const sortedTasks = [...(plan.tasks || [])].sort((a, b) => a.order - b.order);
+  // Sort tasks
+  const sortedTasks = [...(plan.tasks || [])].sort((a, b) => {
+    if (sortBy === 'priority') {
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      const pA = priorityOrder[a.priority || 'medium'];
+      const pB = priorityOrder[b.priority || 'medium'];
+      if (pA !== pB) return pA - pB;
+    } else if (sortBy === 'due_date') {
+      if (!a.due_date) return 1;
+      if (!b.due_date) return -1;
+      return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+    }
+    return a.order - b.order;
+  });
 
   return (
     <div className="space-y-8">
@@ -113,7 +136,28 @@ export function PlanDisplay({ plan }: PlanDisplayProps) {
               <CheckCircle2 className="h-5 w-5" />
               Tasks ({totalTasks})
             </CardTitle>
-            <AddTaskDialog planId={plan.id} />
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 gap-2 text-xs">
+                    <ArrowUpDown className="h-3 w-3" />
+                    Sort: {sortBy === 'manual' ? 'Manual' : sortBy === 'priority' ? 'Priority' : 'Due Date'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setSortBy('manual')}>
+                    Manual (Drag & Drop)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy('priority')}>
+                    Priority (High to Low)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy('due_date')}>
+                    Due Date (Earliest First)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AddTaskDialog planId={plan.id} />
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -123,7 +167,9 @@ export function PlanDisplay({ plan }: PlanDisplayProps) {
               <AddTaskDialog planId={plan.id} />
             </div>
           ) : (
-            <DraggableTaskList tasks={sortedTasks} planId={plan.id} />
+            <div className={sortBy !== 'manual' ? 'pointer-events-none' : ''}>
+              <DraggableTaskList tasks={sortedTasks} planId={plan.id} />
+            </div>
           )}
         </CardContent>
       </Card>

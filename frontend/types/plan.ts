@@ -2,6 +2,7 @@ export type PlanStatus = 'draft' | 'active' | 'completed' | 'archived';
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';
 export type ResourceType = 'link' | 'document' | 'video' | 'other';
 export type TaskDifficulty = 1 | 2 | 3 | 4 | 5;
+export type TaskPriority = 'high' | 'medium' | 'low';
 
 export interface Task {
   id: string;
@@ -9,6 +10,7 @@ export interface Task {
   title: string;
   description: string | null;
   status: TaskStatus;
+  priority: TaskPriority;
   due_date: string | null;
   order: number;
   created_at: string;
