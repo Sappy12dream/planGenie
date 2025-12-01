@@ -6,7 +6,9 @@ import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
 
-from api.routes import plans, tasks, chat, uploads, subtasks, templates
+from contextlib import asynccontextmanager
+from api.routes import plans, tasks, chat, uploads, subtasks, templates, preferences, alerts
+from services.scheduler_service import start_scheduler, shutdown_scheduler
 
 # Load environment variables
 load_dotenv()
@@ -39,11 +41,20 @@ if sentry_dsn:
 else:
     print("⚠️  Sentry DSN not found - error tracking disabled")
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize scheduler
+    start_scheduler()
+    yield
+    # Shutdown: Stop scheduler
+    shutdown_scheduler()
+
 # Initialize FastAPI app
 app = FastAPI(
     title="PlanGenie API",
     description="AI-powered planning copilot backend",
-    version="0.1.0"
+    version="0.1.0",
+    lifespan=lifespan
 )
 
 # Configure CORS - Allow both local and production frontend
@@ -65,6 +76,8 @@ app.include_router(chat.router)
 app.include_router(uploads.router)
 app.include_router(subtasks.router)
 app.include_router(templates.router)
+app.include_router(preferences.router)
+app.include_router(alerts.router)
 
 @app.get("/")
 async def root():

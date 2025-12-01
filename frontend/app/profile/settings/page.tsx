@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
@@ -16,7 +16,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Bell, Moon, Sun, Trash2, LogOut } from 'lucide-react';
+import { ArrowLeft, Bell, Moon, Sun, Trash2, LogOut, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -29,18 +29,54 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { getUserPreferences, updateUserPreferences } from '@/lib/api/preferences';
 
 export default function SettingsPage() {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [taskReminders, setTaskReminders] = useState(true);
   const [weeklyDigest, setWeeklyDigest] = useState(false);
 
-  const handleSavePreferences = () => {
-    toast.success('Preferences saved successfully');
+  useEffect(() => {
+    async function loadPreferences() {
+      if (!user) return;
+
+      try {
+        const prefs = await getUserPreferences();
+        setEmailNotifications(prefs.email_notifications);
+        setTaskReminders(prefs.task_reminders);
+        setWeeklyDigest(prefs.weekly_digest);
+      } catch (error) {
+        console.error('Failed to load preferences:', error);
+        toast.error('Failed to load settings');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadPreferences();
+  }, [user]);
+
+  const handleSavePreferences = async () => {
+    setIsSaving(true);
+    try {
+      await updateUserPreferences({
+        email_notifications: emailNotifications,
+        task_reminders: taskReminders,
+        weekly_digest: weeklyDigest,
+      });
+      toast.success('Preferences saved successfully');
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      toast.error('Failed to save settings');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -48,6 +84,14 @@ export default function SettingsPage() {
   };
 
   const isDarkMode = theme === 'dark';
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
+      </div>
+    );
+  }
 
   return (
     <ProtectedRoute>
@@ -96,10 +140,10 @@ export default function SettingsPage() {
                 <p className="mt-1 text-slate-900 dark:text-slate-100">
                   {user?.created_at
                     ? new Date(user.created_at).toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
                     : 'Recently'}
                 </p>
               </div>
@@ -173,8 +217,13 @@ export default function SettingsPage() {
                 />
               </div>
 
-              <Button onClick={handleSavePreferences} className="mt-4">
-                Save Preferences
+              <Button
+                onClick={handleSavePreferences}
+                className="mt-4"
+                disabled={isSaving}
+              >
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving ? 'Saving...' : 'Save Preferences'}
               </Button>
             </CardContent>
           </Card>

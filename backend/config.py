@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     # App
     environment: str = "development"
     debug: bool = True
+    frontend_url: str = "http://localhost:3004"
 
     # Sentry
     sentry_dsn: str | None = None
@@ -26,3 +27,5 @@ class Settings(BaseSettings):
 def get_settings():
     """Get cached settings instance"""
     return Settings()
+
+settings = get_settings()

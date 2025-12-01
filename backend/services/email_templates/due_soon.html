@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #f59e0b;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .content {
+            background-color: #f8fafc;
+            padding: 30px;
+            border: 1px solid #e2e8f0;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .task-list {
+            margin: 20px 0;
+        }
+
+        .task-item {
+            background-color: white;
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #f59e0b;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .due-date {
+            color: #d97706;
+            font-weight: 600;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Heads Up!</h1>
+        </div>
+        <div class="content">
+            <h2>You have {{ tasks|length }} tasks due soon</h2>
+            <p>Hi there,</p>
+            <p>The following tasks are due in the next 48 hours. Good luck!</p>
+
+            <div class="task-list"
+                style="background-color: white; border-radius: 6px; overflow: hidden; border: 1px solid #e2e8f0;">
+                {% for task in tasks %}
+                <div class="task-item">
+                    <div>
+                        <strong>{{ task.title }}</strong>
+                        <div style="font-size: 12px; color: #64748b;">{{ task.plans.title }}</div>
+                    </div>
+                    <div class="due-date">{{ task.due_date[:10] }}</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="text-align: center;">
+                <a href="{{ dashboard_url }}" class="button">Go to Dashboard</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>You received this email because you have notifications enabled in PlanGenie.</p>
+            <p><a href="{{ dashboard_url }}/profile/settings" style="color: #64748b;">Manage Notifications</a></p>
+        </div>
+    </div>
+</body>
+
+</html>

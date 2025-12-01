@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Plus, Sparkles, LogOut, User, Settings, HelpCircle } from 'lucide-react';
 import { PlanCardSkeleton } from '@/components/dashboard/PlanCardSkeleton';
+import { DashboardAlerts } from '@/components/dashboard/DashboardAlerts';
 
 // Lazy load heavy components to reduce initial bundle size
 const PlanCard = lazy(() => import('@/components/dashboard/PlanCard').then(mod => ({ default: mod.PlanCard })));
@@ -120,6 +121,9 @@ export default function DashboardPage() {
         </div>
 
         <div className="container mx-auto px-4 py-8">
+          {/* Smart Alerts */}
+          <DashboardAlerts />
+
           {/* Page Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
