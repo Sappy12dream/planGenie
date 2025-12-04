@@ -346,25 +346,71 @@ pytest
 pytest --cov=api tests/  # With coverage report
 ```
 
+### Running Frontend Unit Tests
+```bash
+cd frontend
+npm test
+npm run test:watch  # Watch mode
+npm run test:coverage  # With coverage
+```
+
+### Running E2E Tests (Playwright) ✨ **NEW**
+
+PlanGenie includes comprehensive end-to-end tests covering all critical user flows.
+
+```bash
+cd frontend
+
+# Run all E2E tests
+npm run test:e2e
+
+# Run with UI mode (interactive)
+npm run test:e2e:ui
+
+# Run in headed mode (see browser)
+npm run test:e2e:headed
+
+# Debug mode
+npm run test:e2e:debug
+
+# Run specific test file
+npm run test:e2e -- auth.spec.ts
+
+# View test report
+npm run test:e2e:report
+```
+
+**Test Coverage**: 58+ E2E test scenarios covering:
+- Authentication (login, signup, logout, protected routes)
+- Plan management (create, view, delete, filter)
+- Task operations (CRUD, reordering, due dates, priorities)
+- File uploads and previews
+- AI chat interactions
+- Dashboard and navigation
+- Responsive design
+
+See [E2E_TESTING_GUIDE.md](./E2E_TESTING_GUIDE.md) for detailed documentation.
+
 ### Manual Testing Checklist
 
-- [ ] User can sign up with email/password
-- [ ] User can log in with Google OAuth
-- [ ] User can create a new plan with AI
-- [ ] AI generates 7-12 specific tasks (not vague "research" tasks)
-- [ ] Tasks can be checked/unchecked
-- [ ] Tasks can be edited inline (title and description)
-- [ ] Tasks can be reordered via drag & drop
-- [ ] Files can be uploaded to tasks (images, PDFs, docs)
-- [ ] Uploaded files can be viewed and deleted
-- [ ] Chat with AI works and remembers context
-- [ ] Progress bars update correctly
-- [ ] Dashboard shows accurate statistics
-- [ ] User profile displays correct stats
-- [ ] Settings page allows preference changes
-- [ ] 404 page shows for invalid routes
-- [ ] Error boundaries catch and display errors
-- [ ] Offline indicator appears when network is down
+- [x] User can sign up with email/password
+- [x] User can log in with Google OAuth
+- [x] User can create a new plan with AI
+- [x] AI generates 7-12 specific tasks (not vague "research" tasks)
+- [x] Tasks can be checked/unchecked
+- [x] Tasks can be edited inline (title and description)
+- [x] Tasks can be reordered via drag & drop
+- [x] Files can be uploaded to tasks (images, PDFs, docs)
+- [x] Uploaded files can be viewed and deleted
+- [x] Chat with AI works and remembers context
+- [x] Progress bars update correctly
+- [x] Dashboard shows accurate statistics
+- [x] User profile displays correct stats
+- [x] Settings page allows preference changes
+- [x] 404 page shows for invalid routes
+- [x] Error boundaries catch and display errors
+- [x] Offline indicator appears when network is down
+- [x] **E2E tests cover all critical flows** ✅ **NEW**
 
 ## 🚢 Deployment
 
@@ -540,9 +586,7 @@ If you encounter any issues or have questions:
 - [x] **Notification System** - Smart alerts and email notifications
 - [x] **Plan Templates** - Pre-built templates for common goals
 - [x] **Performance Optimization** - Code splitting and query optimization
-
-### 🚧 In Progress
-- [ ] **End-to-End Testing** - Playwright test suite for critical flows
+- [x] **End-to-End Testing** - Playwright test suite for critical flows ✅ **NEW**
 
 ### 🔮 Future Features
 - [ ] **Calendar Integration**: Sync tasks with Google Calendar

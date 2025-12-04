@@ -34,6 +34,7 @@ yarn-error.log*
 .env*
 !.env.example
 !.env.local.example
+!.env.test.example
 
 # vercel
 .vercel
@@ -41,3 +42,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+.env.test.local
