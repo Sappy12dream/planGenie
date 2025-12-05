@@ -147,7 +147,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Stats */}
-          <div className="mb-8 grid grid-cols-3 gap-4" data-tour="stats-overview">
+          <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4" data-tour="stats-overview">
             <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900 animate-slide-up transition-all duration-300 hover:shadow-md">
               <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
                 Active
