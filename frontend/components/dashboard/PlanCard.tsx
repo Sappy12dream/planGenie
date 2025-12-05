@@ -105,7 +105,7 @@ export function PlanCard({ plan }: PlanCardProps) {
   });
   return (
     <>
-      <Card className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:hover:shadow-slate-900/50 animate-fade-in">
+      <Card className="flex flex-col h-full min-h-[280px] cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:hover:shadow-slate-900/50 animate-fade-in">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <CardTitle
@@ -166,7 +166,7 @@ export function PlanCard({ plan }: PlanCardProps) {
         </CardHeader>
 
         <CardContent
-          className="cursor-pointer pb-3"
+          className="flex-1 cursor-pointer pb-3"
           onClick={() => router.push(`/plans/${plan.id}`)}
         >
           {plan.description && (
