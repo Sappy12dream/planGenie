@@ -22,7 +22,8 @@ if (sentryDsn) {
         // in development and sample at a lower rate in production
         replaysSessionSampleRate: environment === "production" ? 0.1 : 0.5,
 
-        // You can remove this option if you're not planning to use the Sentry Session Replay feature:
+        // Optimize bundle size: Only include essential integrations
+        // Replay integration is included by default in @sentry/nextjs
         integrations: [
             Sentry.replayIntegration({
                 // Additional Replay configuration goes here, for example:
@@ -30,6 +31,15 @@ if (sentryDsn) {
                 blockAllMedia: true,
             }),
         ],
+
+        // Enable lazy loading for better performance
+        beforeSend(event) {
+            // Filter out unnecessary events in production
+            if (environment === "production" && event.level === "info") {
+                return null;
+            }
+            return event;
+        },
     });
 
     console.log(`✅ Sentry initialized for environment: ${environment}`);

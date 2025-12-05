@@ -6,7 +6,15 @@ const bundleAnalyzer = withBundleAnalyzer({
 });
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Enable SWC minification (faster and smaller bundles)
+  // swcMinify is enabled by default in Next.js 13+
+
+  // Modularize imports for tree-shaking
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
+  },
 };
 
 export default bundleAnalyzer(nextConfig);
