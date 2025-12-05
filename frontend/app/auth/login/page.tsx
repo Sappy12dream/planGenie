@@ -63,7 +63,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-linear-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-4">
       <div className="w-full max-w-md">
         {/* Header */}
-        <div className="mb-8 text-center">
+        <div className="mb-8 text-center animate-fade-in">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-slate-900 dark:bg-slate-700 px-4 py-2">
             <Sparkles className="h-4 w-4 text-yellow-400" />
             <span className="text-sm font-medium text-white">PlanGenie</span>
@@ -77,7 +77,7 @@ export default function LoginPage() {
         </div>
 
         {/* Login Card */}
-        <Card>
+        <Card className="animate-scale-in">
           <CardHeader>
             <CardTitle>Sign In</CardTitle>
             <CardDescription>

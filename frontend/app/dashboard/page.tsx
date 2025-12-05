@@ -126,7 +126,7 @@ export default function DashboardPage() {
 
           {/* Page Header */}
           <div className="mb-8 flex items-center justify-between">
-            <div>
+            <div className="animate-slide-up">
               <h1 className="mb-2 text-3xl font-bold text-slate-900 dark:text-slate-100">
                 My Plans
               </h1>
@@ -148,7 +148,7 @@ export default function DashboardPage() {
 
           {/* Stats */}
           <div className="mb-8 grid grid-cols-3 gap-4" data-tour="stats-overview">
-            <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900 animate-slide-up transition-all duration-300 hover:shadow-md">
               <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
                 Active
               </p>
@@ -160,7 +160,7 @@ export default function DashboardPage() {
                 )}
               </p>
             </div>
-            <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900 animate-slide-up stagger-1 transition-all duration-300 hover:shadow-md">
               <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
                 Completed
               </p>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
                 )}
               </p>
             </div>
-            <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900 animate-slide-up stagger-2 transition-all duration-300 hover:shadow-md">
               <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
                 Archived
               </p>
@@ -230,7 +230,7 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : plans.length === 0 ? (
-            <div className="py-16 text-center">
+            <div className="py-16 text-center animate-fade-in">
               <Sparkles className="mx-auto mb-4 h-12 w-12 text-slate-300 dark:text-slate-700" />
               <h3 className="mb-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
                 No plans yet

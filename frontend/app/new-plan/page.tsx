@@ -71,7 +71,7 @@ export default function NewPlanPage() {
           </Button>
 
           {/* Header */}
-          <div className="mx-auto mb-12 max-w-3xl text-center">
+          <div className="mx-auto mb-12 max-w-3xl text-center animate-fade-in">
             <h1 className="mb-4 text-5xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
               Turn Goals Into
               <span className="bg-linear-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent dark:from-slate-100 dark:to-slate-400">
@@ -90,7 +90,7 @@ export default function NewPlanPage() {
 
           {/* Form */}
           <div className="mx-auto max-w-4xl space-y-8">
-            <div className="rounded-xl border bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-xl border bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 animate-scale-in">
               <Suspense fallback={<Skeleton className="h-64 w-full" />}>
                 <PlanInputForm selectedTemplate={selectedTemplate} />
               </Suspense>
