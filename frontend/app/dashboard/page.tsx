@@ -146,43 +146,69 @@ export default function DashboardPage() {
             </Button>
           </div>
 
-          {/* Stats */}
+          {/* Stats - Linear/Asana inspired design */}
           <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4" data-tour="stats-overview">
-            <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900 animate-slide-up transition-all duration-300 hover:shadow-md">
-              <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
-                Active
-              </p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {!stats ? (
-                  <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-                ) : (
-                  stats.active
-                )}
-              </p>
+            {/* Active */}
+            <div className="group relative overflow-hidden rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-4 dark:border-blue-900/50 dark:from-blue-950/30 dark:to-slate-900 animate-slide-up transition-all duration-300 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-800">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/50 ring-4 ring-blue-50 dark:ring-blue-950/50">
+                  <svg className="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Active</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    {!stats ? (
+                      <span className="inline-block h-7 w-8 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                    ) : (
+                      stats.active
+                    )}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900 animate-slide-up stagger-1 transition-all duration-300 hover:shadow-md">
-              <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
-                Completed
-              </p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {!stats ? (
-                  <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-                ) : (
-                  stats.completed
-                )}
-              </p>
+
+            {/* Completed */}
+            <div className="group relative overflow-hidden rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-white p-4 dark:border-green-900/50 dark:from-green-950/30 dark:to-slate-900 animate-slide-up stagger-1 transition-all duration-300 hover:shadow-lg hover:border-green-300 dark:hover:border-green-800">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/50 ring-4 ring-green-50 dark:ring-green-950/50">
+                  <svg className="h-5 w-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Completed</p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {!stats ? (
+                      <span className="inline-block h-7 w-8 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                    ) : (
+                      stats.completed
+                    )}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="rounded-lg border bg-white p-4 dark:border-slate-800 dark:bg-slate-900 animate-slide-up stagger-2 transition-all duration-300 hover:shadow-md">
-              <p className="mb-1 text-sm text-slate-600 dark:text-slate-400">
-                Archived
-              </p>
-              <p className="text-2xl font-bold text-slate-600 dark:text-slate-400">
-                {!stats ? (
-                  <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
-                ) : (
-                  stats.archived
-                )}
-              </p>
+
+            {/* Archived */}
+            <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4 dark:border-slate-700 dark:from-slate-800/50 dark:to-slate-900 animate-slide-up stagger-2 transition-all duration-300 hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-600">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 ring-4 ring-slate-50 dark:ring-slate-900/50">
+                  <svg className="h-5 w-5 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Archived</p>
+                  <p className="text-2xl font-bold text-slate-600 dark:text-slate-300">
+                    {!stats ? (
+                      <span className="inline-block h-7 w-8 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+                    ) : (
+                      stats.archived
+                    )}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 

@@ -111,8 +111,8 @@ export function DashboardAlerts() {
                     Refresh
                 </Button>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {alerts.map((alert) => (
+            <div className="space-y-2">
+                {alerts.slice(0, 5).map((alert) => (
                     <AlertCard key={alert.id} alert={alert} onDismiss={handleDismiss} />
                 ))}
             </div>
